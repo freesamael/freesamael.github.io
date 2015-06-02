@@ -1,0 +1,3709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: MobileMessageDB</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: MobileMessageDB</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+        MobileMessageDB
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    <h4 class="name" id="MobileMessageDB"><span class="type-signature"></span>new MobileMessageDB<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line18">line 18</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id=".close"><span class="type-signature">(static) </span>close<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Close the MobileMessageDB.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line100">line 100</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".createDomMessageFromRecord"><span class="type-signature">(static) </span>createDomMessageFromRecord<span class="signature">(aMessageRecord)</span><span class="type-signature"> &rarr; {nsIDOMMozSmsMessage|nsIDOMMozMmsMessage}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Generate a <code>nsIDOMMozSmsMessage</code> or<br><code>nsIDOMMozMmsMessage</code> instance from a stored message record.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aMessageRecord</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The stored message record.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line286">line 286</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">nsIDOMMozSmsMessage</span>
+|
+
+<span class="param-type">nsIDOMMozMmsMessage</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".createParticipantRecord"><span class="type-signature">(static) </span>createParticipantRecord<span class="signature">(aParticipantStore, aAddresses, aCallback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Create a participant record with the given addresses, and add it into the<br>participant object store immediately.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantStore</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Object store for participants.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aAddresses</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The addresses associated to the participant.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.ParticipantRecordCallback">MobileMessageDB.ParticipantRecordCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The callback function to invoke when the request finishes.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line302">line 302</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".ensureDB"><span class="type-signature">(static) </span>ensureDB<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Prepare the database. This may include opening the database and upgrading<br>it to the latest schema version.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.EnsureDBCallback">MobileMessageDB.EnsureDBCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Function that takes an error and db argument. It is called when<br>       the database is ready to use or if an error occurs while preparing<br>       the database.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line44">line 44</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".findParticipantIdsByTypedAddresses"><span class="type-signature">(static) </span>findParticipantIdsByTypedAddresses<span class="signature">(aParticipantStore, aTypedAddresses, aCreate, aSkipNonexistent, aCallback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Find or create the IDs of participant records associated to the given<br>addresses.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantStore</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The object store for participants.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aTypedAddresses</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;<a href="MobileMessageDB.html#.TypedAddress">MobileMessageDB.TypedAddress</a>></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Addresses to look up with.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCreate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p><code>true</code> to create a new participant record if not exists<br>        yet, otherwise return <code>null</code> to the callback if record<br>        not found.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aSkipNonexistent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p><code>true</code> to skip the address which is not able to be found<br>        in the participant store, otherwise return <code>null</code><br>        (through the callback) when one or more addresses not found.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.ParticipantIdsCallback">MobileMessageDB.ParticipantIdsCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The callback function to invoke when the request finishes.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line377">line 377</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".findParticipantRecordByOtherAddress"><span class="type-signature">(static) </span>findParticipantRecordByOtherAddress<span class="signature">(aParticipantStore, aAddress, aCreate, aCallback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Find or create the participant record associated to the given address other<br>than PLMN address.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantStore</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The object store for participants.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aAddress</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The address to look up with.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCreate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p><code>true</code> to create a new participant record if not exists<br>        yet, otherwise return <code>null</code> to the callback if record<br>        not found.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.ParticipantRecordCallback">MobileMessageDB.ParticipantRecordCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The callback function to invoke when the request finishes.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line331">line 331</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".findParticipantRecordByPlmnAddress"><span class="type-signature">(static) </span>findParticipantRecordByPlmnAddress<span class="signature">(aParticipantStore, aAddress, aCreate, aCallback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Find or create the participant record associated to the given PLMN address.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantStore</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The object store for participants.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aAddress</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The PLMN address to look up with.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCreate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p><code>true</code> to create a new participant record if not exists<br>        yet, otherwise return <code>null</code> to the callback if record<br>        not found.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.ParticipantRecordCallback">MobileMessageDB.ParticipantRecordCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The callback function to invoke when the request finishes.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line315">line 315</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".findParticipantRecordByTypedAddress"><span class="type-signature">(static) </span>findParticipantRecordByTypedAddress<span class="signature">(aParticipantStore, aTypedAddress, aCreate, aCallback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Find or create the participant record associated to the given address.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantStore</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The object store for participants.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aTypedAddress</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.TypedAddress">MobileMessageDB.TypedAddress</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The address to look up with.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCreate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p><code>true</code> to create a new participant record if not exists<br>        yet, otherwise return <code>null</code> to the callback if record<br>        not found.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.ParticipantRecordCallback">MobileMessageDB.ParticipantRecordCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The callback function to invoke when the request finishes.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line355">line 355</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".init"><span class="type-signature">(static) </span>init<span class="signature">(aDbName, aDbVersion, aCallback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Initialize this MobileMessageDB.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aDbName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A string name for that database.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aDbVersion</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The version that mmdb should upgrade to. 0 for the latest version.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.InitCallback">MobileMessageDB.InitCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A function when either the initialization transaction is completed<br>       or any error occurs.  Should take only one argument -- null when<br>       initialized with success or the error object otherwise.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line86">line 86</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".newTxn"><span class="type-signature">(static) </span>newTxn<span class="signature">(txn_type, callback, storeNames<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Start a new transaction.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>txn_type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Type of transaction (e.g. READ_WRITE)</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.NewTxnCallback">MobileMessageDB.NewTxnCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Function to call when the transaction is available. It will<br>       be invoked with the transaction and opened object stores.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>storeNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    [<a href="MobileMessageDB_jsm.html#.MESSAGE_STORE_NAME">MobileMessageDB_jsm.MESSAGE_STORE_NAME</a>]
+                
+                </td>
+            
+
+            <td class="description last"><p>Names of the stores to open.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line67">line 67</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".newTxnWithCallback"><span class="type-signature">(static) </span>newTxnWithCallback<span class="signature">(aCallback, aFunc, aStoreNames<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Start a new transaction with default <code>oncomplete</code> /<br><code>onabort</code> implementation on the <code>IDBTransaction</code><br>object which redirects the error / result to <code>aCallback</code>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.NewTxnWithCallbackTransactionCallback">MobileMessageDB.NewTxnWithCallbackTransactionCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The callback function to invoke when the transaction finishes.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aFunc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.NewTxnWithCallbackRequestCallback">MobileMessageDB.NewTxnWithCallbackRequestCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The callback function to invoke when the request finishes.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aStoreNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    [<a href="MobileMessageDB_jsm.html#.MESSAGE_STORE_NAME">MobileMessageDB_jsm.MESSAGE_STORE_NAME</a>]
+                
+                </td>
+            
+
+            <td class="description last"><p>Names of the stores to open.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line446">line 446</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".updatePendingTransactionToError"><span class="type-signature">(static) </span>updatePendingTransactionToError<span class="signature">(aError)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Sometimes user might reboot or remove battery while sending/receiving<br>message. This function set the status of message records to error. The<br>function can be used as the callback of <a href="MobileMessageDB.html#.init">MobileMessageDB.init</a>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aError</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The function does nothing if <code>aError</code> is not<br>       <code>null</code>.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line106">line 106</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+
+    
+
+    <h4 class="name" id=".EnsureDBCallback"><span class="type-signature"></span>EnsureDBCallback<span class="signature">(aErrorCode, aDatabase)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aErrorCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The error code on failure, or <code>null</code> on success.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aDatabase</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBDatabase</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The ready-to-use database object on success.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line36">line 36</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".InitCallback"><span class="type-signature"></span>InitCallback<span class="signature">(aErrorCode)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aErrorCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The error code on failure, or <code>null</code> on success.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line80">line 80</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+<h4 class="name" id=".MessageRecordWrap">MessageRecordWrap</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>messageRecord</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The stored message record.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line429">line 429</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".NewTxnCallback"><span class="type-signature"></span>NewTxnCallback<span class="signature">(aErrorCode, aTransaction, aObjectStores)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aErrorCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The error code on failure, or <code>null</code> on success.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aTransaction</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBTransaction</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The transaction object to operate the indexedDB on success.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aObjectStores</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+|
+
+<span class="param-type">Array.&lt;IDBObjectStore></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The object store(s) on success. If only one object store is passed,<br>       it's passed as an <code>IDBObjectStore</code>; Otherwise, it's<br>       <code>IDBObjectStore[]</code>.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line55">line 55</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".NewTxnWithCallbackRequestCallback"><span class="type-signature"></span>NewTxnWithCallbackRequestCallback<span class="signature">(aCapture, aObjectStores)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aCapture</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="MobileMessageDB.html#.MessageRecordWrap">MobileMessageDB.MessageRecordWrap</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An output parameter. Callee should set the<br>       <code>messageRecord</code> property on transaction finishes.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aObjectStores</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">IDBObjectStore</span>
+|
+
+<span class="param-type">Array.&lt;IDBObjectStore></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The object store(s) on success. If only one object store is passed,<br>       it's passed as an <code>IDBObjectStore</code>; Otherwise, it's<br>       <code>IDBObjectStore[]</code>.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line435">line 435</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".NewTxnWithCallbackTransactionCallback"><span class="type-signature"></span>NewTxnWithCallbackTransactionCallback<span class="signature">(aErrorCode, aDomMessage)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aErrorCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The error code on failure, or <code>NS_OK</code> on success.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aDomMessage</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">nsIDOMMozSmsMessage</span>
+|
+
+<span class="param-type">nsIDOMMozMmsMessage</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The DOM message instance of the transaction result.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line421">line 421</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".ParticipantIdsCallback"><span class="type-signature"></span>ParticipantIdsCallback<span class="signature">(aParticipantIds)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantIds</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;number></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An array of participant IDs. May be <code>null</code>.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line371">line 371</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".ParticipantRecordCallback"><span class="type-signature"></span>ParticipantRecordCallback<span class="signature">(aParticipantRecord)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantRecord</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The stored participant record.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line296">line 296</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id=".ThreadRecoardCallback"><span class="type-signature"></span>ThreadRecoardCallback<span class="signature">(aThreadRecord, aParticipantIds)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>aThreadRecord</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The stored thread record.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>aParticipantIds</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;number></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>IDs of participants of the thread.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line398">line 398</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+<h4 class="name" id=".TypedAddress">TypedAddress</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>address</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Address</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Type of the address, such as &quot;PLMN&quot;, &quot;IPv4&quot;,<br>          &quot;IPv6&quot;, &quot;email&quot; or &quot;Others&quot;</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MobileMessageDB.jsm.html">MobileMessageDB.jsm</a>, <a href="MobileMessageDB.jsm.html#line348">line 348</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="MobileMessageDB.html">MobileMessageDB</a></li></ul><h3>Namespaces</h3><ul><li><a href="MobileMessageDB_jsm.html">MobileMessageDB_jsm</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0-dev</a> on Tue Jun 02 2015 16:39:47 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
