@@ -2084,6 +2084,21 @@ MobileMessageDB.prototype = {
     }; // End of messageStore.openCursor().onsuccess
   },
 
+  /**
+   * Check if &lt;code>addr1&lt;/code> matches &lt;code>addr2&lt;/code>.
+   *
+   * @function MobileMessageDB.matchPhoneNumbers
+   * @param {string} addr1
+   *        Normalized address 1.
+   * @param {Object} parsedAddr1
+   *        Parsed address 1.
+   * @param {string} addr2
+   *        Normalized address 2.
+   * @param {Object} parsedAddr2
+   *        Parsed address 2.
+   * @return {boolean}
+   *         &lt;code>true&lt;/code> if the 2 addresses match.
+   */
   matchParsedPhoneNumbers: function(addr1, parsedAddr1, addr2, parsedAddr2) {
     if ((parsedAddr1.internationalNumber &amp;&amp;
          parsedAddr1.internationalNumber === parsedAddr2.internationalNumber) ||
@@ -2107,6 +2122,21 @@ MobileMessageDB.prototype = {
            addr1.slice(-val) === addr2.slice(-val);
   },
 
+  /**
+   * Check if &lt;code>addr1&lt;/code> matches &lt;code>addr2&lt;/code>.
+   *
+   * @function MobileMessageDB.matchPhoneNumbers
+   * @param {string} addr1
+   *        Normalized address 1.
+   * @param {Object} parsedAddr1
+   *        Parsed address 1.
+   * @param {string} addr2
+   *        Normalized address 2.
+   * @param {Object} parsedAddr2
+   *        Parsed address 2.
+   * @return {boolean}
+   *         &lt;code>true&lt;/code> if the 2 addresses match.
+   */
   matchPhoneNumbers: function(addr1, parsedAddr1, addr2, parsedAddr2) {
     if (parsedAddr1 &amp;&amp; parsedAddr2) {
       return this.matchParsedPhoneNumbers(addr1, parsedAddr1, addr2, parsedAddr2);
@@ -2772,7 +2802,7 @@ MobileMessageDB.prototype = {
   },
 
   /**
-   * @typedef MobileMessageDB.DeleteInfo
+   * @typedef MobileMessageDB.DeletedInfo
    * @property {number[]} messageIds
    *           IDs of deleted messages.
    * @property {number[]} threadIds
@@ -2802,7 +2832,7 @@ MobileMessageDB.prototype = {
    *        The message record to store.
    * @param {MobileMessageDB.TypedAddress[]} aThreadParticipants
    *        Participants of the thread of the message.
-   * @param {MobileMessageDB.DeleteInfo} aDeletedInfo
+   * @param {MobileMessageDB.DeletedInfo} aDeletedInfo
    *        An out parameter indicating which messages have been deleted due to
    *        the replacement.
    */
@@ -2894,7 +2924,7 @@ MobileMessageDB.prototype = {
    *        The message record to store.
    * @param {MobileMessageDB.TypedAddress[]} aThreadParticipants
    *        Participants of the thread of the message.
-   * @param {MobileMessageDB.DeleteInfo} aDeletedInfo
+   * @param {MobileMessageDB.DeletedInfo} aDeletedInfo
    *        An out parameter indicating which messages have been deleted due to
    *        the replacement.
    */
@@ -3198,6 +3228,15 @@ MobileMessageDB.prototype = {
     });
   },
 
+  /**
+   * Add participants to the MMS message.
+   *
+   * @function MobileMessageDB.fillReceivedMmsThreadParticipants
+   * @param {MobileMessageDB.MessageRecord} aMessage
+   *        The MMS message.
+   * @param {MobileMessageDB.TypedAddress[]} threadParticipants
+   *        Participants to add.
+   */
   fillReceivedMmsThreadParticipants: function(aMessage, threadParticipants) {
     let receivers = aMessage.receivers;
     // If we don't want to disable the MMS grouping for receiving, we need to
@@ -3242,6 +3281,24 @@ MobileMessageDB.prototype = {
       });
   },
 
+  /**
+   * Update the thread when one or more messages are deleted / replaced.
+   *
+   * @function MobileMessageDB.updateThreadByMessageChange
+   * @param {IDBObjectStore} messageStore
+   *        The object store for messages.
+   * @param {IDBObjectStore} threadStore
+   *        The object store for threads.
+   * @param {number} threadId
+   *        The thread ID.
+   * @param {number[]} removedMsgIds
+   *        The IDs of removed messages.
+   * @param {number} ignoredUnreadCount
+   *        Minus the &lt;code>unreadCount&lt;/code> with the given value.
+   * @param {MobileMessageDB.DeletedInfo} deletedInfo
+   *        An out parameter indicating if the thread is deleted after the
+   *        operation.
+   */
   updateThreadByMessageChange: function(messageStore, threadStore, threadId,
                                         removedMsgIds, ignoredUnreadCount, deletedInfo) {
     let self = this;
@@ -3302,6 +3359,13 @@ MobileMessageDB.prototype = {
     };
   },
 
+  /**
+   * Notify the observers that one or more messages are deleted.
+   *
+   * @function MobileMessageDB.notifyDeletedInfo
+   * @param {MobileMessageDB.DeletedInfo} info
+   *        The IDs of deleted messages and threads.
+   */
   notifyDeletedInfo: function(info) {
     if (!info ||
         (info.messageIds.length === 0 &amp;&amp; info.threadIds.length === 0)) {
