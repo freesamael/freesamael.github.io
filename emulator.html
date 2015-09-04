@@ -1,0 +1,510 @@
+<h1 id="study-on-emulator">Study on Emulator</h1>
+
+<p><div class="toc">
+<ul>
+<li><a href="#study-on-emulator">Study on Emulator</a><ul>
+<li><a href="#prefix">Prefix</a></li>
+<li><a href="#emulator-basics">Emulator Basics</a><ul>
+<li><a href="#launch-emulator-from-aosp-b2g-tree">Launch Emulator from AOSP / B2G Tree</a><ul>
+<li><a href="#use-writable-system-image">Use Writable System Image</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#build-goldfish-kernel">Build Goldfish Kernel</a><ul>
+<li><a href="#special-setup-for-mac-os-x">Special Setup for Mac OS X</a><ul>
+<li><a href="#copy-elfutils-headers">Copy elfutils headers:</a></li>
+<li><a href="#create-usrlocalincludelinuxtypesh">Create /usr/local/include/linux/types.h:</a></li>
+<li><a href="#install-gnu-sed">Install GNU sed.</a></li>
+</ul>
+</li>
+<li><a href="#build-the-kernel">Build the Kernel</a><ul>
+<li><a href="#build-the-kernel-manually">Build the Kernel Manually</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#the-goldfish-virtual-board">The Goldfish Virtual Board</a><ul>
+<li><a href="#qemumachine-initialization">QEMUMachine Initialization</a></li>
+<li><a href="#goldfish-device-registration">Goldfish Device Registration</a></li>
+<li><a href="#goldfish-platform-bus">Goldfish Platform Bus</a><ul>
+<li><a href="#discoverability">Discoverability</a></li>
+<li><a href="#virtual-device-design">Virtual Device Design</a></li>
+<li><a href="#kernel-driver-implementation">Kernel Driver Implementation</a></li>
+<li><a href="#procioports">/proc/ioports</a></li>
+<li><a href="#prociomem">/proc/iomem</a></li>
+</ul>
+</li>
+<li><a href="#x86-device-initialization">x86 Device Initialization</a></li>
+<li><a href="#qemu-pipe-goldfish-pipe">QEMU Pipe / Goldfish Pipe</a><ul>
+<li><a href="#qemu-pipe-services">QEMU Pipe Services</a><ul>
+<li><a href="#service-workflow">Service Workflow</a></li>
+</ul>
+</li>
+<li><a href="#adaption-of-legacy-qemud">Adaption of Legacy QEMUD</a><ul>
+<li><a href="#initialization-flow">Initialization Flow</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#qemud-services">QEMUD Services</a><ul>
+<li><a href="#service-workflow-1">Service Workflow</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#unsorted">Unsorted</a><ul>
+<li><a href="#to-study">To Study</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</p>
+
+
+
+<h2 id="prefix">Prefix</h2>
+
+<p>The study focuses on Android’s latest dev branch <code>studio-1.4-dev</code> implementation of the classic emulator, in combination of gonk layer and kernel used in <code>emulator-x86-kk</code>. Mozilla’s customization is not a main focus in this document, but might still be referred.</p>
+
+<blockquote>
+  <p>I say <em>classic</em> because there’s another new emulator implementation for Android M or later at <a href="https://android.googlesource.com/platform/external/qemu-android/">qemu-android</a>.</p>
+</blockquote>
+
+
+
+<h2 id="emulator-basics">Emulator Basics</h2>
+
+
+
+<h3 id="launch-emulator-from-aosp-b2g-tree">Launch Emulator from AOSP / B2G Tree</h3>
+
+<p>Besides using AVD or passing everything through the command line arguments, emulator is capable of finding images from the built AOSP / B2G tree directly if you have proper environment variables set. Here’s an example:</p>
+
+
+
+<pre class="prettyprint"><code class="language-bash hljs "><span class="hljs-comment"># In ${B2G} or ${AOSP}</span>
+$ <span class="hljs-keyword">export</span> ANDROID_BUILD_TOP=<span class="hljs-variable">${PWD}</span>
+$ <span class="hljs-keyword">export</span> ANDROID_PRODUCT_OUT=<span class="hljs-variable">${PWD}</span>/out/target/product/generic_x86/
+$ ./out/host/darwin-x86/bin/emulator -gpu on </code></pre>
+
+<p>If the emulator doesn’t boot, try deleting <code>${ANDROID_PRODUCT_OUT}/userdata-qemu.img</code> first. Note that <code>-gpu on</code> is necessary for B2G. </p>
+
+<p>To show kernel message, use <code>-show-kernel</code>. The message is redirected through the emulated system’s <code>ttyS0</code> or <code>ttyGF0</code>.</p>
+
+<p>For older emulator builds, qemu monitor can be redirected to stdio through <code>-qemu -monitor stdio</code>, but it’s no longer support in newer code. See <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/android/console.c#L2640">console.c</a>.</p>
+
+
+
+<h4 id="use-writable-system-image">Use Writable System Image</h4>
+
+<p>By default, <code>system.img</code> and <code>userdata.img</code> are read only init images, while <code>system-qemu.img</code> and <code>userdata-qemu.img</code> are writable. See <code>emulator -help-disk-images</code> for more information.</p>
+
+<p>In usual case, a writable image is created under <code>/tmp/android-xxx/</code>. To use a writable system image on boot directly, simply move <code>${ANDROID_PRODUCT_OUT}/system.img</code> to <code>${ANDROID_PRODUCT_OUT}/system-qemu.img</code>.</p>
+
+<blockquote>
+  <p>The emulator version used in emulator-x86-kk has a bug and it complains <code>ko:Missing initial system image path!</code> when using <code>system-qemu.img</code>. It’s fixed in newer versions.</p>
+</blockquote>
+
+
+
+<h2 id="build-goldfish-kernel">Build Goldfish Kernel</h2>
+
+
+
+<h3 id="special-setup-for-mac-os-x">Special Setup for Mac OS X</h3>
+
+<p>Building qemu-kernel on Ubuntu Linux is quite straightforward, but on Mac OS X there are some tricks need to be done.</p>
+
+
+
+<h4 id="copy-elfutils-headers">Copy elfutils headers:</h4>
+
+
+
+<pre class="prettyprint"><code class="language-bash hljs ">cp <span class="hljs-variable">${B2G}</span>/external/elfutils/host-darwin-fixup/* /usr/local/include/
+cp <span class="hljs-variable">${B2G}</span>/external/elfutils/libelf/elf.h /usr/local/include/</code></pre>
+
+
+
+<h4 id="create-usrlocalincludelinuxtypesh">Create <code>/usr/local/include/linux/types.h</code>:</h4>
+
+
+
+<pre class="prettyprint"><code class="language-c hljs "><span class="hljs-preprocessor">#include &lt;stdint.h&gt;</span>
+
+<span class="hljs-preprocessor">#ifndef __u8</span>
+<span class="hljs-keyword">typedef</span> uint8_t __u8;
+<span class="hljs-preprocessor">#endif</span>
+
+<span class="hljs-preprocessor">#ifndef __u16</span>
+<span class="hljs-keyword">typedef</span> uint16_t __u16;
+<span class="hljs-preprocessor">#endif</span>
+
+<span class="hljs-preprocessor">#ifndef __u32</span>
+<span class="hljs-keyword">typedef</span> uint32_t __u32;
+<span class="hljs-preprocessor">#endif</span>
+
+<span class="hljs-preprocessor">#ifndef __u64</span>
+<span class="hljs-keyword">typedef</span> uint64_t __u64;
+<span class="hljs-preprocessor">#endif</span></code></pre>
+
+
+
+<h4 id="install-gnu-sed">Install GNU sed.</h4>
+
+<p>Linux kernel makefiles are not compatible with BSD sed:</p>
+
+
+
+<pre class="prettyprint"><code class="language-bash hljs ">brew install gnu-sed
+<span class="hljs-keyword">export</span> PATH=<span class="hljs-string">"/usr/local/opt/gnu-sed/libexec/gnubin:<span class="hljs-variable">$PATH</span>"</span></code></pre>
+
+
+
+<h3 id="build-the-kernel">Build the Kernel</h3>
+
+<p>This section applies to both Linux and Mac OS X.</p>
+
+<p>Clean previous build with <code>make clean</code> or clean all configs (only necessary for the very first time) with <code>make mrproper</code>, then build the kernel (x86 as the example) with <code>build-kernel.sh</code>:</p>
+
+
+
+<pre class="prettyprint"><code class="language-bash hljs "><span class="hljs-variable">${B2G}</span>/external/qemu/distrib/build-kernel.sh --arch=x86
+<span class="hljs-comment"># or ${AOSP}/prebuilts/qemu-kernel/build-kernel.sh --arch=x86</span>
+<span class="hljs-comment"># omit --arch parameter to build arm kernel</span></code></pre>
+
+<p>The output should be at <code>/tmp/kernel-qemu</code> directory.</p>
+
+<p>If the cross toolchain version differs from the default version (at the time this document is written, the default version is 4.8), pass <code>--gcc-version=&lt;version&gt;</code>. If you’re using an older version of build script and it doesn’t have the option, export the path to cross compiler directly. For example:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-keyword">export</span> PATH=<span class="hljs-variable">${PATH}</span>:<span class="hljs-variable">${B2G}</span>/prebuilts/gcc/darwin-x86/x86/i686-linux-android-<span class="hljs-number">4.7</span>/bin/</code></pre>
+
+
+
+<h4 id="build-the-kernel-manually">Build the Kernel Manually</h4>
+
+<p>To build kernel manually, export necessary variables</p>
+
+
+
+<pre class="prettyprint"><code class="language-bash hljs "><span class="hljs-keyword">export</span> ARCH=x86 <span class="hljs-comment"># or arm</span>
+<span class="hljs-keyword">export</span> SUBARCH=x86 <span class="hljs-comment"># or am</span>
+<span class="hljs-keyword">export</span> REAL_CROSS_COMPILE=i686-linux-android-
+<span class="hljs-comment"># or x86_64-linux-android-</span>
+<span class="hljs-comment"># or arm-linux-androideabi-</span>
+<span class="hljs-keyword">export</span> CROSS_COMPILE=<span class="hljs-variable">${B2G}</span>/external/qemu/distrib/kernel-toolchain/android-kernel-toolchain-
+<span class="hljs-comment"># or CROSS_COMPILE=${AOSP}/prebuilts/qemu-kernel/kernel-toolchain/android-kernel-toolchain-</span></code></pre>
+
+<p>Then build the kernel with </p>
+
+
+
+<pre class="prettyprint"><code class="language-bash hljs ">make goldfish_defconfig
+make nconfig <span class="hljs-comment"># optional, only if you want to change the config</span>
+make -j8</code></pre>
+
+<p>The output should be at <code>arch/arm/boot/zImage</code> or <code>arch/x86/boot/bzImage</code>. Copy and rename it to <code>kernel-qemu</code> before use.</p>
+
+
+
+<h2 id="the-goldfish-virtual-board">The Goldfish Virtual Board</h2>
+
+
+
+<h3 id="qemumachine-initialization">QEMUMachine Initialization</h3>
+
+<p>Each CPU-specific emulation engine (e.g. <code>emulator64-x86</code>) registers its emulated machines statically through <code>machine_init</code> statement. </p>
+
+<p>The macro generates a function to register a machine with gcc special attribute <code>__attribute__((constructor))</code>, which conceptually resembles static constructor in modern languages, and is invoked when the program loads.</p>
+
+<ul>
+<li><a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/hw/i386/pc.c#L1332">x86 machine registration</a></li>
+<li><a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/hw/android/android_arm.c#L161">arm machine registration</a></li>
+</ul>
+
+<p>Refer <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/include/qemu/module.h#L34">machine_init</a>, <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/include/qemu/module.h#L18-L21">module_init</a>, <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/util/module.c#L58-L69">register_module_init</a>, and <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/include/hw/boards.h#L15-L23">QEMUMachine</a>.</p>
+
+
+
+<h3 id="goldfish-device-registration">Goldfish Device Registration</h3>
+
+<p>The core of a goldfish device registration is <a href="https://github.com/android/platform_external_qemu/blob/dc053e276a0484385c5f34d0b271e6704f0d4c3f/hw/android/goldfish/device.c#L99-L102">goldfish_device_add</a>: <br>
+- dev: the device description, refer <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/include/hw/android/goldfish/device.h#L18-L29">goldfish_device</a>. <br>
+- mem_read: an array of callbacks for <em>byte</em>, <em>word</em> and <em>dword</em> memory read operations, respectively. <br>
+- mem_wrtie: an array of callbacks for <em>byte</em>, <em>word</em> and <em>dword</em> memory write operations, respectively. <br>
+- opaque: anything the caller wants to keep. It will be carried back to the mem_read / mem_write callback functions on invocation.</p>
+
+
+
+<pre class="prettyprint"><code class="language-c hljs "><span class="hljs-keyword">int</span> goldfish_device_add(<span class="hljs-keyword">struct</span> goldfish_device *dev,
+                       CPUReadMemoryFunc **mem_read,
+                       CPUWriteMemoryFunc **mem_write,
+                       <span class="hljs-keyword">void</span> *opaque);</code></pre>
+
+<blockquote>
+  <p>Devices registered here are operated through memory-mapped I/O.</p>
+</blockquote>
+
+
+
+<h3 id="goldfish-platform-bus">Goldfish Platform Bus</h3>
+
+
+
+<h4 id="discoverability">Discoverability</h4>
+
+<p>For embedded systems, devices are not naturally discoverable, and the driver doesn’t know which I/O port, memory address or interrupt it should use.</p>
+
+<p><em>Platform bus</em> is a special <em>platform device</em> to overcome this issue. Think about PCI.</p>
+
+<blockquote>
+  <p>In the new qemu-android implementation for Android M and later, it no longer uses <em>platform bus</em> in favor of <em>device tree</em>. Refer the article <a href="http://lwn.net/Articles/448502/">Platform devices and device trees</a> for more information about device trees.</p>
+</blockquote>
+
+
+
+<h4 id="virtual-device-design">Virtual Device Design</h4>
+
+<ul>
+<li>Goldfish Platform Bus uses the MMIO address region 0xff001000 to 0xff801000. </li>
+<li>0xff001000 - 0xff001fff are reserved by <code>goldfish_device_bus</code> as a set of <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/docs/GOLDFISH-VIRTUAL-HARDWARE.TXT#L73-L89">32bit I/O registers</a> for bus operations.</li>
+<li>The bus device uses IRQ 1 on ARM with goldfish interrupt controller, and IRQ 4 on x86 with qemu’s built-in virtual i8259.</li>
+</ul>
+
+
+
+<h4 id="kernel-driver-implementation">Kernel Driver Implementation</h4>
+
+<p><a href="https://github.com/mozilla-b2g/kernel_goldfish/blob/b2g-goldfish-3.4/arch/x86/mach-goldfish/pdev_bus.c">pdev_bus.c</a> registers a <em>platform device</em> <code>goldfish_pdev_bus</code> at I/O port 0x1000, which plays the role of a <em>platform bus</em>.</p>
+
+<p>The bus scan process is as following:</p>
+
+
+
+<div class="sequence-diagram"><svg style="overflow: hidden; position: relative; top: -0.75px;" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="805.0749893188477" version="1.1" height="804.9999885559082"><desc>Created with Raphaël 2.1.2</desc><defs><path id="raphael-marker-block" d="M5,0 0,2.5 5,5z" stroke-linecap="round"></path><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1138"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1141"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1144"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1147"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1153"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1156"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1159"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1162"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1170"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1176"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1179"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1182"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker></defs><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="60.06666564941406" y="20" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="40.06666564941406" y="30" x="20"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="40.03333282470703" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">kernel</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="60.06666564941406" y="745.8333225250244" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="40.06666564941406" y="755.8333129882812" x="20"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="765.4166555404663" x="40.03333282470703" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416696548461914">kernel</tspan></text><path stroke-width="2" d="M40.03333282470703,59.16666603088379L40.03333282470703,745.8333225250244" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="82.25" y="20" x="447.44165802001953"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="62.25" y="30" x="457.441650390625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="488.56665802001953" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">pdev_bus</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="82.25" y="745.8333225250244" x="447.44165802001953"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="62.25" y="755.8333129882812" x="457.441650390625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="765.4166555404663" x="488.56665802001953" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416696548461914">pdev_bus</tspan></text><path stroke-width="2" d="M488.56665802001953,59.16666603088379L488.56665802001953,745.8333225250244" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="79.0999984741211" y="74.58333587646484" x="224.74998474121094"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="84.16666603088379" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416668891906738">goldfish_init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1138)" stroke-width="2" d="M40.03333282470703,98.33333206176758C40.03333282470703,98.33333206176758,434.4574246687189,98.33333206176758,483.56784626062466,98.33333206176758" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="343.8500061035156" y="113.75" x="92.37499237060547"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="123.33333206176758" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416670799255371">platform_device_register(&amp;goldfish_pdev_bus_device)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1141)" stroke-width="2" d="M488.56665802001953,137.49999809265137C488.56665802001953,137.49999809265137,94.14256617600768,137.49999809265137,45.0321445841019,137.49999809265137" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="148.01666259765625" y="152.9166717529297" x="190.29165649414062"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="162.49999809265137" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416665077209473">goldfish_pdev_bus_init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1144)" stroke-width="2" d="M40.03333282470703,176.66666412353516C40.03333282470703,176.66666412353516,434.4574246687189,176.66666412353516,483.56784626062466,176.66666412353516" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="336.48333740234375" y="192.0833282470703" x="96.0583267211914"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="201.66666412353516" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416674613952637">platform_driver_register(&amp;goldfish_pdev_bus_driver)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1147)" stroke-width="2" d="M488.56665802001953,215.83333015441895C488.56665802001953,215.83333015441895,94.14256617600768,215.83333015441895,45.0321445841019,215.83333015441895" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="196.26666259765625" y="235.83333015441895" x="60.03333282470703"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="186.26666259765625" y="240.8333282470703" x="65.0333251953125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="250.41666316986084" x="158.16666412353516" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.41667366027832">found driver / device matches</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="164.63333129882812" y="280.4166564941406" x="181.9833221435547"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="289.99999618530273" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.41666316986084">goldfish_pdev_bus_probe</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1153)" stroke-width="2" d="M40.03333282470703,304.1666622161865C40.03333282470703,304.1666622161865,434.4574246687189,304.1666622161865,483.56784626062466,304.1666622161865" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="73" y="319.5833435058594" x="227.79998779296875"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="329.1666622161865" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416672706604004">request_irq</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1156)" stroke-width="2" d="M488.56665802001953,343.3333282470703C488.56665802001953,343.3333282470703,94.14256617600768,343.3333282470703,45.0321445841019,343.3333282470703" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="183.56666564941406" y="358.75" x="172.51666259765625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="368.3333282470703" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416682243347168">goldfish_pdev_bus_interrupt</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1159)" stroke-width="2" d="M40.03333282470703,382.4999942779541C40.03333282470703,382.4999942779541,434.4574246687189,382.4999942779541,483.56784626062466,382.4999942779541" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="32.93333435058594" y="397.9166564941406" x="247.8333282470703"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="407.4999942779541" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416661262512207">readl</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1162)" stroke-width="2" d="M488.56665802001953,421.6666603088379C488.56665802001953,421.6666603088379,94.14256617600768,421.6666603088379,45.0321445841019,421.6666603088379" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="408.5333251953125" y="441.6666603088379" x="60.03333282470703"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="398.5333251953125" y="446.6666564941406" x="65.0333251953125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="456.2499933242798" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416660308837891">goes to the registered CPUReadMemoryFunc goldfish_bus_read</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="123.5999984741211" y="490.83331298828125" x="513.566650390625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="500.4166593551636" x="575.3666572570801" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">goldfish_new_pdev</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M488.56665802001953,485.8333263397217L508.56665802001953,485.8333263397217" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M508.56665802001953,485.8333263397217L508.56665802001953,519.9999923706055" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1170)" stroke-dasharray="0" stroke-width="2" d="M508.56665802001953,519.9999923706055C508.56665802001953,519.9999923706055,499.4857711791992,519.9999923706055,493.56191140413284,519.9999923706055" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="149.73333740234375" y="529.9999923706055" x="508.56665802001953"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="139.73333740234375" y="535" x="513.5667114257812"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="544.5833253860474" x="583.4333267211914" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416679382324219">all devices info loaded</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="227.23333740234375" y="574.5833129882812" x="150.68331909179688"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="584.1666584014893" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416638374328613">schedule_work(&amp;pdev_bus_worker)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1176)" stroke-width="2" d="M488.56665802001953,598.333324432373C488.56665802001953,598.333324432373,94.14256617600768,598.333324432373,45.0321445841019,598.333324432373" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="141.01666259765625" y="613.75" x="193.8249969482422"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="623.333324432373" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416678428649902">goldfish_pdev_worker</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1179)" stroke-width="2" d="M40.03333282470703,637.4999904632568C40.03333282470703,637.4999904632568,434.4574246687189,637.4999904632568,483.56784626062466,637.4999904632568" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="158.6666717529297" y="652.9166870117188" x="184.99998474121094"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="662.4999904632568" x="264.2999954223633" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416657447814941">platform_device_register</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1182)" stroke-width="2" d="M488.56665802001953,676.6666564941406C488.56665802001953,676.6666564941406,94.14256617600768,676.6666564941406,45.0321445841019,676.6666564941406" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="205.38333129882812" y="696.6666564941406" x="508.56665802001953"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="195.38333129882812" y="701.6666870117188" x="513.566650390625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="711.2499895095825" x="611.2583236694336" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416656494140625">loop until all devices registered</tspan></text></svg></div>
+
+<p>After the bus scan finishes, <code>goldfish_pdev_bus_device</code> can be removed through <code>platform_device_unregister</code>, although the driver didn’t do so. </p>
+
+<p>Those platform devices registered still need corresponding drivers to work. For exmaple, the driver for <em>qemu_pipe</em> is at <a href="https://github.com/mozilla-b2g/kernel_goldfish/blob/b2g-goldfish-3.4/drivers/misc/qemupipe/qemu_pipe.c">qemu_pipe.c</a>.</p>
+
+
+
+<h4 id="procioports">/proc/ioports</h4>
+
+<p>/proc/ioports lists all registered PMIO. <code>goldfish_pdev_bus</code> is registered at I/O port 0x1000.</p>
+
+
+
+<pre class="prettyprint"><code class="language-text hljs cpp"><span class="hljs-number">0000</span>-<span class="hljs-number">001f</span> : dma1
+<span class="hljs-number">0020</span>-<span class="hljs-number">0021</span> : pic1
+<span class="hljs-number">0040</span>-<span class="hljs-number">0043</span> : timer0
+<span class="hljs-number">0050</span>-<span class="hljs-number">0053</span> : timer1
+<span class="hljs-number">0060</span>-<span class="hljs-number">0060</span> : keyboard
+<span class="hljs-number">0064</span>-<span class="hljs-number">0064</span> : keyboard
+<span class="hljs-number">0070</span>-<span class="hljs-number">0071</span> : rtc_cmos
+  <span class="hljs-number">0070</span>-<span class="hljs-number">0071</span> : rtc0
+<span class="hljs-number">0080</span>-<span class="hljs-number">008f</span> : dma page reg
+<span class="hljs-number">00</span>a0-<span class="hljs-number">00</span>a1 : pic2
+<span class="hljs-number">00</span>c0-<span class="hljs-number">00</span>df : dma2
+<span class="hljs-number">00f</span>0-<span class="hljs-number">00f</span>f : fpu
+<span class="hljs-number">03</span>c0-<span class="hljs-number">03</span>df : vga+
+<span class="hljs-number">0</span>cf8-<span class="hljs-number">0</span>cff : PCI conf1
+<span class="hljs-number">1000</span>-<span class="hljs-number">10f</span>f : goldfish_pdev_bus
+c000-c0ff : <span class="hljs-number">0000</span>:<span class="hljs-number">00</span>:<span class="hljs-number">02.0</span>
+  c000-c01f : ne2k-pci</code></pre>
+
+
+
+<h4 id="prociomem">/proc/iomem</h4>
+
+<p>/proc/iomen lists all registered MMIO and real memory.</p>
+
+<p><code>goldfish_device_bus</code> is a special device which contains only the bus state for bus scanning only. It can be thought as the corresponding device implementation of <code>goldfish_pdev_bus_device</code>, and can also be removed after scan finishes.</p>
+
+
+
+<pre class="prettyprint"><code class="language-text hljs lasso"><span class="hljs-number">00000000</span><span class="hljs-subst">-</span><span class="hljs-number">0000</span>ffff : reserved
+<span class="hljs-number">00010000</span><span class="hljs-subst">-</span><span class="hljs-number">0009</span>efff : System RAM
+<span class="hljs-number">0009</span>f000<span class="hljs-subst">-</span><span class="hljs-number">0009</span>ffff : reserved
+<span class="hljs-number">000</span>a0000<span class="hljs-subst">-</span><span class="hljs-number">000</span>bffff : Video RAM area
+<span class="hljs-number">000</span>c0000<span class="hljs-subst">-</span><span class="hljs-number">000</span>c8bff : Video ROM
+<span class="hljs-number">000</span>c9000<span class="hljs-subst">-</span><span class="hljs-number">000</span>c91ff : Adapter ROM
+<span class="hljs-number">000e8000</span><span class="hljs-subst">-</span><span class="hljs-number">000</span>fffff : reserved
+  <span class="hljs-number">000</span>f0000<span class="hljs-subst">-</span><span class="hljs-number">000</span>fffff : System ROM
+<span class="hljs-number">00100000</span><span class="hljs-subst">-</span><span class="hljs-number">1</span>ffeffff : System RAM
+  <span class="hljs-number">00200000</span><span class="hljs-subst">-</span><span class="hljs-number">0067</span>f9ec : Kernel code
+  <span class="hljs-number">0067</span>f9ed<span class="hljs-subst">-</span><span class="hljs-number">008906</span>ff : Kernel <span class="hljs-built_in">data</span>
+  <span class="hljs-number">008</span>dd000<span class="hljs-subst">-</span><span class="hljs-number">00</span>a3dfff : Kernel bss
+<span class="hljs-number">1</span>fff0000<span class="hljs-subst">-</span><span class="hljs-number">1</span>fffffff : ACPI Tables
+ff001000<span class="hljs-attribute">-ff001fff</span> : goldfish_device_bus
+ff004000<span class="hljs-attribute">-ff004fff</span> : goldfish_audio<span class="hljs-number">.0</span>
+ff005000<span class="hljs-attribute">-ff005fff</span> : goldfish_mmc<span class="hljs-number">.0</span>
+ff010000<span class="hljs-attribute">-ff010fff</span> : goldfish<span class="hljs-attribute">-battery</span><span class="hljs-number">.0</span>
+ff011000<span class="hljs-attribute">-ff011fff</span> : goldfish_nand<span class="hljs-number">.0</span>
+ff012000<span class="hljs-attribute">-ff013fff</span> : qemu_pipe
+ff014000<span class="hljs-attribute">-ff014fff</span> : goldfish_tty<span class="hljs-number">.0</span>
+ff015000<span class="hljs-attribute">-ff015fff</span> : goldfish_tty<span class="hljs-number">.1</span>
+ff016000<span class="hljs-attribute">-ff016fff</span> : goldfish_fb<span class="hljs-number">.0</span>
+ff017000<span class="hljs-attribute">-ff017fff</span> : goldfish_events<span class="hljs-number">.0</span>
+fffc0000<span class="hljs-attribute">-ffffffff</span> : reserved</code></pre>
+
+
+
+<h3 id="x86-device-initialization">x86 Device Initialization</h3>
+
+
+
+<div class="sequence-diagram"><svg style="overflow: hidden; position: relative; top: -0.433594px;" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="882.1666669845581" version="1.1" height="529.9999923706055"><desc>Created with Raphaël 2.1.2</desc><defs><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1246"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1249"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1252"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1255"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1258"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1261"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1264"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1269"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1272"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1275"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker></defs><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="88.53333282470703" y="20" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="68.53333282470703" y="30" x="20"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="54.266666412353516" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">vl_android</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="88.53333282470703" y="470.8333263397217" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="68.53333282470703" y="480.83331298828125" x="20"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="490.4166593551636" x="54.266666412353516" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">vl_android</tspan></text><path stroke-width="2" d="M54.266666412353516,59.16666603088379L54.266666412353516,470.8333263397217" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="69.13333511352539" y="20" x="309.9499988555908"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="49.13333511352539" y="30" x="319.9499816894531"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="344.5166664123535" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">module</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="69.13333511352539" y="470.8333263397217" x="309.9499988555908"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="49.13333511352539" y="480.83331298828125" x="319.9499816894531"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="490.4166593551636" x="344.5166664123535" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">module</tspan></text><path stroke-width="2" d="M344.5166664123535,59.16666603088379L344.5166664123535,470.8333263397217" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="35.983333587646484" y="20" x="452.5750026702881"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="15.983333587646484" y="30" x="462.57501220703125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="470.5666694641113" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">pc</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="35.983333587646484" y="470.8333263397217" x="452.5750026702881"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="15.983333587646484" y="480.83331298828125" x="462.57501220703125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="490.4166593551636" x="470.5666694641113" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">pc</tspan></text><path stroke-width="2" d="M470.5666694641113,59.16666603088379L470.5666694641113,470.8333263397217" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="97.91666412353516" y="20" x="508.55833625793457"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="77.91666412353516" y="30" x="518.558349609375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="557.5166683197021" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">pc_machine</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="97.91666412353516" y="470.8333263397217" x="508.55833625793457"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="77.91666412353516" y="480.83331298828125" x="518.558349609375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="490.4166593551636" x="557.5166683197021" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">pc_machine</tspan></text><path stroke-width="2" d="M557.5166683197021,59.16666603088379L557.5166683197021,470.8333263397217" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="61.29999923706055" y="20" x="626.4750003814697"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="41.29999923706055" y="30" x="636.4749755859375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="657.125" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">device</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="61.29999923706055" y="470.8333263397217" x="626.4750003814697"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="41.29999923706055" y="480.83331298828125" x="636.4749755859375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="490.4166593551636" x="657.125" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">device</tspan></text><path stroke-width="2" d="M657.125,59.16666603088379L657.125,470.8333263397217" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="48.58333396911621" y="20" x="803.5833330154419"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="28.58333396911621" y="30" x="813.5833129882812"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="827.875" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">pipe</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="48.58333396911621" y="470.8333263397217" x="803.5833330154419"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="28.58333396911621" y="480.83331298828125" x="813.5833129882812"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="490.4166593551636" x="827.875" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416669845581055">pipe</tspan></text><path stroke-width="2" d="M827.875,59.16666603088379L827.875,470.8333263397217" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="270.25" y="74.58333587646484" x="64.26666259765625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="84.16666603088379" x="199.39166641235352" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416668891906738">module_call_init(MODULE_INIT_MACHINE)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1246)" stroke-width="2" d="M54.266666412353516,98.33333206176758C54.266666412353516,98.33333206176758,301.06731809675694,98.33333206176758,339.5094117917397,98.33333206176758" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="106.05000305175781" y="113.75" x="354.51666259765625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="123.33333206176758" x="407.5416679382324" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416670799255371">pc_machine_init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1249)" stroke-width="2" d="M344.5166664123535,137.49999809265137C344.5166664123535,137.49999809265137,442.15795510475164,137.49999809265137,465.56707265747013,137.49999809265137" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="240.14999389648438" y="152.9166717529297" x="142.34165954589844"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="162.49999809265137" x="262.4166679382324" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416665077209473">qemu_register_machine(pc_machine)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1252)" stroke-width="2" d="M470.5666694641113,176.66666412353516C470.5666694641113,176.66666412353516,106.39108818237128,176.66666412353516,59.26875954972425,176.66666412353516" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="21.46666717529297" y="192.0833282470703" x="295.1583251953125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="201.66666412353516" x="305.89166736602783" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416674613952637">init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1255)" stroke-width="2" d="M54.266666412353516,215.83333015441895C54.266666412353516,215.83333015441895,500.154173264802,215.83333015441895,552.5154747286759,215.83333015441895" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="51.56666564941406" y="231.25" x="488.25836181640625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="240.83333015441895" x="514.0416688919067" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416668891906738">pc_init1</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1258)" stroke-width="2" d="M557.5166683197021,254.99999618530273C557.5166683197021,254.99999618530273,494.06580001479404,254.99999618530273,475.569624048959,254.99999618530273" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="127.06666564941406" y="270.4166564941406" x="500.3125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="279.99999618530273" x="563.8458347320557" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.41666316986084">goldfish_device_init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1261)" stroke-width="2" d="M470.5666694641113,294.1666622161865C470.5666694641113,294.1666622161865,622.4258891603747,294.1666622161865,652.1229680121097,294.1666622161865" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="157.3333282470703" y="309.5833435058594" x="485.1791687011719"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="319.1666622161865" x="563.8458347320557" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416672706604004">goldfish_device_bus_init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1264)" stroke-width="2" d="M470.5666694641113,333.3333282470703C470.5666694641113,333.3333282470703,622.4258891603747,333.3333282470703,652.1229680121097,333.3333282470703" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="130.75" y="353.3333435058594" x="682.125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="362.9166612625122" x="747.5" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.4166717529296875">goldfish_device_add</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M657.125,348.3333282470703L677.125,348.3333282470703" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M677.125,348.3333282470703L677.125,382.4999942779541" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1269)" stroke-dasharray="0" stroke-width="2" d="M677.125,382.4999942779541C677.125,382.4999942779541,668.0441131591797,382.4999942779541,662.1202533841133,382.49999427795404" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="87.05000305175781" y="387.9166564941406" x="605.69580078125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="397.4999942779541" x="649.2208347320557" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416661262512207">pipe_dev_init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1272)" stroke-width="2" d="M470.5666694641113,411.6666603088379C470.5666694641113,411.6666603088379,779.6383415150497,411.6666603088379,822.8751745436598,411.6666603088379" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="130.75" y="427.08331298828125" x="677.125"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="436.6666603088379" x="742.5" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416670799255371">goldfish_device_add</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1275)" stroke-width="2" d="M827.875,450.8333263397217C827.875,450.8333263397217,690.2719449549913,450.8333263397217,662.1197574238104,450.8333263397217" stroke="#000000" fill="none" style=""></path></svg></div>
+
+<p>Log printed at <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/hw/android/goldfish/device.c#L86-L87">goldfish_add_device_no_io</a>, if enabled:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs http"><span class="hljs-attribute">goldfish_device_bus_init</span>: <span class="hljs-string">base ff001000, irq 4</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_device_bus, base ff001000 1000, irq 4 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish-battery, base ff010000 1000, irq 5 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_nand, base ff011000 1000, irq 0 0</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">qemu_pipe, base ff012000 2000, irq 6 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_mmc, base ff005000 1000, irq 7 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_tty, base ff014000 1000, irq 9 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_tty, base ff015000 1000, irq 10 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_fb, base ff016000 1000, irq 11 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_events, base ff017000 1000, irq 3 1</span>
+<span class="hljs-attribute">goldfish_add_device</span>: <span class="hljs-string">goldfish_audio, base ff004000 1000, irq 14 1</span></code></pre>
+
+
+
+<h3 id="qemu-pipe-goldfish-pipe">QEMU Pipe / Goldfish Pipe</h3>
+
+<p>QEMU Pipe is a special virtual device to provide very fast communication channel between the emulator and the emulated system. In the emulated system, it appears as either <code>/dev/qemu_pipe</code> or <code>/dev/goldfish_pipe</code></p>
+
+
+
+<h4 id="qemu-pipe-services">QEMU Pipe Services</h4>
+
+<p>There are currently 4 types of services using qemu pipe, as described in the <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/docs/ANDROID-QEMU-PIPE.TXT#L288-L315">document</a>. Services are registered through <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/hw/android/goldfish/pipe.c#L83-L86">goldfish_pipe_add_type</a>: <br>
+- pipeName: an unique name of the pipe service. <br>
+- pipeOpaque: anything the caller wants to keep. It will be carried back to the handler functions. <br>
+- pipeFuncs: pipe handler functions. Refer <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/include/hw/android/goldfish/pipe.h#L62-L119">GoldfishPipeFuncs</a>.</p>
+
+
+
+<pre class="prettyprint"><code class="language-c hljs "><span class="hljs-keyword">void</span>
+goldfish_pipe_add_type(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*               pipeName,
+                       <span class="hljs-keyword">void</span>*                     pipeOpaque,
+                       <span class="hljs-keyword">const</span> GoldfishPipeFuncs*  pipeFuncs );</code></pre>
+
+
+
+<h5 id="service-workflow">Service Workflow</h5>
+
+<p>When a client in the emulated system tries to connect to a specific pipe service, <code>init</code> callback is invoked; while when the kernel is closing a pipe, <code>close</code> is invoked. Writing from a client redirects to <code>sendBuffers</code>, and reading redirects to <code>recvBuffers</code>. The basic workflow looks like this:</p>
+
+
+
+<div class="sequence-diagram"><svg style="overflow: hidden; position: relative; top: -0.983398px;" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="310.0833339691162" version="1.1" height="530.8333263397217"><desc>Created with Raphaël 2.1.2</desc><defs><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1306"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1309"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1315"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1321"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1327"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker></defs><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="75.01666641235352" y="20" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="55.016666412353516" y="30" x="19.999998092651367"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="47.50833320617676" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">hw_pipe</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="75.01666641235352" y="471.6666603088379" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="55.016666412353516" y="481.6666564941406" x="19.999998092651367"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="491.2499933242798" x="47.50833320617676" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416660308837891">hw_pipe</tspan></text><path stroke-width="2" d="M47.50833320617676,59.16666603088379L47.50833320617676,471.6666603088379" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="99.91666412353516" y="20" x="180.16666984558105"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="79.91666412353516" y="30" x="190.1666717529297"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="230.12500190734863" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">pipe_service</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="99.91666412353516" y="471.6666603088379" x="180.16666984558105"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="79.91666412353516" y="481.6666564941406" x="190.1666717529297"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="491.2499933242798" x="230.12500190734863" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416660308837891">pipe_service</tspan></text><path stroke-width="2" d="M230.12500190734863,59.16666603088379L230.12500190734863,471.6666603088379" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="105.56666564941406" y="79.16666603088379" x="67.50833320617676"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="95.56666564941406" y="84.16666412353516" x="72.50833129882812"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="93.74999904632568" x="120.29166603088379" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416666030883789">client connects</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="21.46666717529297" y="123.75" x="128.0833282470703"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="133.33333206176758" x="138.8166675567627" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416670799255371">init</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1306)" stroke-width="2" d="M47.50833320617676,147.49999809265137C47.50833320617676,147.49999809265137,195.79722191892324,147.49999809265137,225.1219289153404,147.49999809265137" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="28.58333396911621" y="162.9166717529297" x="124.5250015258789"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="172.49999809265137" x="138.8166675567627" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416665077209473">pipe</tspan></text><path stroke-dasharray="6,2" marker-end="url(#raphael-marker-endblock55-obj1309)" stroke-width="2" d="M230.12500190734863,186.66666412353516C230.12500190734863,186.66666412353516,81.83611319460215,186.66666412353516,52.511406198185,186.66666412353516" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="87.18333435058594" y="206.66666412353516" x="67.50833320617676"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="77.18333435058594" y="211.6666717529297" x="72.50833129882812"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="221.24999713897705" x="111.10000038146973" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416664123535156">client writes</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="162.61666870117188" y="251.25" x="57.50833511352539"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="260.83333015441895" x="138.8166675567627" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416653633117676">sendBuffers(pipe, buffers)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1315)" stroke-width="2" d="M47.50833320617676,274.99999618530273C47.50833320617676,274.99999618530273,195.79722191892324,274.99999618530273,225.1219289153404,274.99999618530273" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="83.46666717529297" y="294.99999618530273" x="67.50833320617676"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="73.46666717529297" y="300" x="72.50833892822266"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="309.58332920074463" x="109.24166679382324" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416652679443359">client reads</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="158.8000030517578" y="339.5833435058594" x="59.41666793823242"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="349.1666622161865" x="138.8166675567627" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416672706604004">recvBuffers(pipe, buffers)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1321)" stroke-width="2" d="M47.50833320617676,363.3333282470703C47.50833320617676,363.3333282470703,195.79722191892324,363.3333282470703,225.1219289153404,363.3333282470703" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="118.46666717529297" y="383.3333282470703" x="67.50833320617676"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="108.46666717529297" y="388.3333435058594" x="72.50833892822266"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="397.9166612625122" x="126.74166679382324" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.4166717529296875">client closes pipe</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="70.18333435058594" y="427.9166564941406" x="103.7249984741211"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="437.4999942779541" x="138.8166675567627" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416661262512207">close(pipe)</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1327)" stroke-width="2" d="M47.50833320617676,451.6666603088379C47.50833320617676,451.6666603088379,195.79722191892324,451.6666603088379,225.1219289153404,451.6666603088379" stroke="#000000" fill="none" style=""></path></svg></div>
+
+<blockquote>
+  <p>The service might not be able to consume more writes, or provide anything to read temporarily when a write / read request occurs. In this case, the service returns <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/include/hw/android/goldfish/pipe.h#L189">PIPE_ERROR_AGAIN</a>. </p>
+  
+  <p>The client can then choose to be signaled when writing / reading is possible. See <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/docs/ANDROID-QEMU-PIPE.TXT#L167-L229">waiting / signaling</a> sections.</p>
+</blockquote>
+
+
+
+<h4 id="adaption-of-legacy-qemud">Adaption of Legacy QEMUD</h4>
+
+<p>Before qemu pipe was implemented, communications between emulator and the emulated system were all through serial port with a multiplexing daemon <a href="https://github.com/mozilla-b2g/device_generic_goldfish/blob/b2g-4.4.2_r1/qemud/qemud.c">qemud</a> which lives in the emulated system.</p>
+
+<p>The daemon creates a socket <code>/dev/socket/qemud</code>, and client programs transmit data through the socket. The whole architecture looks like this:</p>
+
+
+
+<pre class="prettyprint"><code class="language-text hljs coffeescript">emulator &lt;==<span class="hljs-function"><span class="hljs-title">serial</span>==&gt;</span> qemud &lt;--<span class="hljs-function">-&gt;</span> /dev/socket/qemud &lt;-+-<span class="hljs-function">-&gt;</span> client1
+                                                      |
+                                                      +-<span class="hljs-function">-&gt;</span> client2</code></pre>
+
+<p>The benefit of using qemud was to avoid writing device drivers for all services such as gsm, gps and other emulated sensors, but instead only needed to implement the multiplexing protocol clients.</p>
+
+<p>The qemu pipe replaces the role and provides much better performance. However, to keep backward compatibility and to avoid too much change to the existing implementation, the <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/android/hw-qemud.c">emulator side qemud</a> is kept but it works as one of the qemu pipe services now. The serial port channel no longer in use, unless you’re running a very old version of Android on the emulator, such as Gingerbread.</p>
+
+<p>For emulated systems since ICS, both <a href="https://github.com/mozilla-b2g/device_generic_goldfish/blob/b2g-4.4.2_r1/qemud/qemud.c">qemud daemon</a> and the corresponding socket <code>/dev/socket/qemud</code> are no longer in use, however it still keeps legagy code for backward compatibility, and consequently the logs / configs look very confusing. For example, You can still find qemud service in <a href="https://github.com/mozilla-b2g/device_generic_goldfish/blob/b2g-4.4.2_r1/init.goldfish.rc#L129-L131">init.goldfish.rc</a>.</p>
+
+
+
+<h5 id="initialization-flow">Initialization Flow</h5>
+
+<p>The first part of the initialization flow keeps the original design – qemud was initailized as a char device since it was using serial port. The adaption happens in <code>_android_qemud_pipe_init</code> function, in which it initialized itself as a pipe service.</p>
+
+
+
+<div class="sequence-diagram"><svg style="overflow: hidden; position: relative; top: -0.783203px;" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" width="732.4083318710327" version="1.1" height="589.1666584014893"><desc>Created with Raphaël 2.1.2</desc><defs><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1378"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1381"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1386"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1391"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1396"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1399"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1404"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1412"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker><marker refY="2.5" refX="2.5" orient="auto" markerWidth="5" markerHeight="5" id="raphael-marker-endblock55-obj1415"><use stroke="none" fill="#000" stroke-width="1.0000" transform="rotate(180 2.5 2.5) scale(1,1)" xlink:href="#raphael-marker-block"></use></marker></defs><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="88.53333282470703" y="20" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="68.53333282470703" y="30" x="20"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="54.266666412353516" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">vl_android</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="88.53333282470703" y="529.9999923706055" x="10"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="68.53333282470703" y="540" x="20"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="549.5833253860474" x="54.266666412353516" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416679382324219">vl_android</tspan></text><path stroke-width="2" d="M54.266666412353516,59.16666603088379L54.266666412353516,529.9999923706055" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="92.56666564941406" y="20" x="165.25000381469727"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="72.56666564941406" y="30" x="175.28334045410156"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="211.5333366394043" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">qemu_char</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="92.56666564941406" y="529.9999923706055" x="165.25000381469727"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="72.56666564941406" y="540" x="175.28334045410156"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="549.5833253860474" x="211.5333366394043" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416679382324219">qemu_char</tspan></text><path stroke-width="2" d="M211.5333366394043,59.16666603088379L211.5333366394043,529.9999923706055" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="91.86666870117188" y="20" x="418.9833335876465"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="71.86666870117188" y="30" x="428.98333740234375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="464.9166679382324" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">hw_qemud</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="91.86666870117188" y="529.9999923706055" x="418.9833335876465"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="71.86666870117188" y="540" x="428.98333740234375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="549.5833253860474" x="464.9166679382324" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416679382324219">hw_qemud</tspan></text><path stroke-width="2" d="M464.9166679382324,59.16666603088379L464.9166679382324,529.9999923706055" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="48.58333396911621" y="20" x="653.8249979019165"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="28.58333396911621" y="30" x="663.824951171875"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="39.583333015441895" x="678.1166648864746" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416667938232422">pipe</tspan></text><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="39.16666603088379" width="48.58333396911621" y="529.9999923706055" x="653.8249979019165"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="28.58333396911621" y="540" x="663.824951171875"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="549.5833253860474" x="678.1166648864746" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416679382324219">pipe</tspan></text><path stroke-width="2" d="M678.1166648864746,59.16666603088379L678.1166648864746,529.9999923706055" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="98.30000305175781" y="79.16666603088379" x="74.26666641235352"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="88.30000305175781" y="84.16666412353516" x="79.26667022705078"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="93.74999904632568" x="123.41666793823242" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416666030883789">main function</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="117.26667022705078" y="128.3333282470703" x="79.26666259765625"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="137.91666507720947" x="137.89999771118164" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416660308837891">serial_hds_add_at</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M54.266666412353516,123.33333206176758L74.26666641235352,123.33333206176758" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M74.26666641235352,123.33333206176758L74.26666641235352,157.49999809265137" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1378)" stroke-dasharray="0" stroke-width="2" d="M74.26666641235352,157.49999809265137C74.26666641235352,157.49999809265137,65.1857795715332,157.49999809265137,59.26191979646683,157.49999809265137" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="104.4000015258789" y="162.9166717529297" x="80.69999694824219"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="172.49999809265137" x="132.9000015258789" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416665077209473">qemu_chr_open</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1381)" stroke-width="2" d="M54.266666412353516,186.66666412353516C54.266666412353516,186.66666412353516,179.73175987627485,186.66666412353516,206.53399541849438,186.66666412353516" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="139.6999969482422" y="206.6666717529297" x="236.53334045410156"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="216.24999713897705" x="306.3833351135254" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416664123535156">qemu_chr_open_opts</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M211.5333366394043,201.66666412353516L231.5333366394043,201.66666412353516" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M231.5333366394043,201.66666412353516L231.5333366394043,235.83333015441895" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1386)" stroke-dasharray="0" stroke-width="2" d="M231.5333366394043,235.83333015441895C231.5333366394043,235.83333015441895,222.45244979858398,235.83333015441895,216.5285900235176,235.83333015441895" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="142.60000610351562" y="245.8333282470703" x="236.53334045410156"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="255.41666316986084" x="307.8333320617676" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.41667366027832">backend_table[i].open</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M211.5333366394043,240.83333015441895L231.5333366394043,240.83333015441895" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M231.5333366394043,240.83333015441895L231.5333366394043,274.99999618530273" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1391)" stroke-dasharray="0" stroke-width="2" d="M231.5333366394043,274.99999618530273C231.5333366394043,274.99999618530273,222.45244979858398,274.99999618530273,216.5285900235176,274.99999618530273" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="213.38333129882812" y="285" x="236.53334045410156"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="294.58332920074463" x="343.22500228881836" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416652679443359">qemu_chr_open_android_qemud</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M211.5333366394043,279.99999618530273L231.5333366394043,279.99999618530273" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M231.5333366394043,279.99999618530273L231.5333366394043,314.1666622161865" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1396)" stroke-dasharray="0" stroke-width="2" d="M231.5333366394043,314.1666622161865C231.5333366394043,314.1666622161865,222.45244979858398,314.1666622161865,216.5285900235176,314.1666622161865" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="150.0833282470703" y="319.5833435058594" x="263.183349609375"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="329.1666622161865" x="338.22500228881836" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416672706604004">android_qemud_get_cs</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1399)" stroke-width="2" d="M211.5333366394043,343.3333282470703C211.5333366394043,343.3333282470703,424.37011781108595,343.3333282470703,459.9121974794039,343.3333282470703" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="130.4499969482422" y="363.3333435058594" x="489.9166564941406"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="372.9166612625122" x="555.1416664123535" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.4166717529296875">android_qemud_init</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M464.9166679382324,358.3333282470703L484.9166679382324,358.3333282470703" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M484.9166679382324,358.3333282470703L484.9166679382324,392.4999942779541" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1404)" stroke-dasharray="0" stroke-width="2" d="M484.9166679382324,392.4999942779541C484.9166679382324,392.4999942779541,475.8357810974121,392.4999942779541,469.91192132234573,392.49999427795404" stroke="#000000" fill="none" style=""></path><rect stroke-width="2" style="" stroke="#000000" fill="none" ry="0" rx="0" height="29.16666603088379" width="119.63333129882812" y="402.4999942779541" x="484.9166679382324"></rect><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="109.63333129882812" y="407.5" x="489.91668701171875"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="417.083327293396" x="544.7333335876465" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416681289672852">adapt qemu-pipe</tspan></text><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="173.1999969482422" y="451.6666564941406" x="489.9166564941406"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="461.2499933242798" x="576.5166664123535" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416660308837891">_android_qemud_pipe_init</tspan></text><path stroke-dasharray="0" stroke-width="2" d="M464.9166679382324,446.6666603088379L484.9166679382324,446.6666603088379" stroke="#000000" fill="none" style=""></path><path stroke-dasharray="0" stroke-width="2" d="M484.9166679382324,446.6666603088379L484.9166679382324,480.8333263397217" stroke="#000000" fill="none" style=""></path><path marker-end="url(#raphael-marker-endblock55-obj1412)" stroke-dasharray="0" stroke-width="2" d="M484.9166679382324,480.8333263397217C484.9166679382324,480.8333263397217,475.8357810974121,480.8333263397217,469.91192132234573,480.8333263397217" stroke="#000000" fill="none" style=""></path><rect style="" stroke="none" fill="#ffffff" ry="0" rx="0" height="19.16666603088379" width="153.35000610351562" y="486.25" x="494.8416748046875"></rect><text fill="#000000" stroke="none" font-size="16px" font-family="Andale Mono, monospace" text-anchor="middle" y="495.8333263397217" x="571.5166664123535" style="text-anchor: middle; font-family: Andale Mono,monospace; font-size: 16px;"><tspan dy="5.416680335998535">goldfish_pipe_add_type</tspan></text><path stroke-dasharray="0" marker-end="url(#raphael-marker-endblock55-obj1415)" stroke-width="2" d="M464.9166679382324,509.99999237060547C464.9166679382324,509.99999237060547,640.9601847245176,509.99999237060547,673.1087566376381,509.99999237060547" stroke="#000000" fill="none" style=""></path></svg></div>
+
+<p>Refer <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/qemu-char.c#L2553-L2594">backend_table</a> and <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/android/hw-qemud.c#L2268-L2278">android_qemud_init</a>.</p>
+
+
+
+<h3 id="qemud-services">QEMUD Services</h3>
+
+<p><a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/docs/ANDROID-QEMUD-SERVICES.TXT">Qemud services</a> are registered through <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/android/hw-qemud.c#L2304-L2310">qemud_service_register</a>: <br>
+- service_name: an unique name for the service. <br>
+- max_clients: the maximum number of clients accepted by the service concurrently. If this value is 0, then any number of clients can connect. <br>
+- serv_opaque: anything the caller wants to keep. It will be carried back to the callback functions. <br>
+- serv_connect: see <a href="https://github.com/android/platform_external_qemu/blob/dc053e276a0484385c5f34d0b271e6704f0d4c3f/android/hw-qemud.h#L114-L121">QemudServiceConnect</a>. <br>
+- serv_save: see <a href="https://github.com/android/platform_external_qemu/blob/dc053e276a0484385c5f34d0b271e6704f0d4c3f/android/hw-qemud.h#L123-L126">QemudServiceSave</a>. <br>
+- serv_load: See <a href="https://github.com/android/platform_external_qemu/blob/dc053e276a0484385c5f34d0b271e6704f0d4c3f/android/hw-qemud.h#L128-L131">QemudServiceLoad</a>.</p>
+
+
+
+<pre class="prettyprint"><code class="language-c hljs ">QemudService*
+qemud_service_register( <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*          service_name,
+                        <span class="hljs-keyword">int</span>                  max_clients,
+                        <span class="hljs-keyword">void</span>*                serv_opaque,
+                        QemudServiceConnect  serv_connect,
+                        QemudServiceSave     serv_save,
+                        QemudServiceLoad     serv_load );</code></pre>
+
+<p>Launch the emulator with <code>-debug-qemud</code> option shows the log:</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs http"><span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service hw-control</span>
+<span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service boot-properties</span>
+<span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service gsm</span>
+<span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service gps</span>
+<span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service camera</span>
+<span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service sensors</span>
+<span class="hljs-attribute">emulator</span>: <span class="hljs-string">Registered QEMUD service fingerprintlisten</span></code></pre>
+
+<blockquote>
+  <p>There were “adb” and “adb-debug” qemud services, but apparently adb services didn’t work well and are currently disabled. See <a href="https://github.com/android/platform_external_qemu/blob/a7a04854907de2bb23eb48bac942b32ec2654ba8/android/avd/util.c#L238-L241">propertyFile_getAdbdCommunicationMode</a>.</p>
+</blockquote>
+
+
+
+<h4 id="service-workflow-1">Service Workflow</h4>
+
+<hr>
+
+
+
+<h1 id="unsorted">Unsorted</h1>
+
+<p>Rild support for qemu pipe implemented in <a href="https://github.com/mozilla-b2g/android-hardware-ril/commit/385a73934b05fd28915e0ae17020dbfe3b20afd4">commit 385a739</a>.</p>
+
+
+
+<h2 id="to-study">To Study</h2>
+
+<ul>
+<li>qemud / charpipe</li>
+<li>display state / framebuffer / memory dirty flags </li>
+<li>opengl emulation</li>
+<li>sdl / qt bindings and event loop handling</li>
+<li>device trees / virtio</li>
+</ul>
