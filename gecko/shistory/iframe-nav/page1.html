@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <title>Page 1</title>
   </head>
-  <body onload="console.log('page1 load');" onunload="console.log('page1 unload');">
+  <body>
     <h1>Page 1</h1>
-    <a href="page2.html">Link to page 2</a>
+    <p>Step 1: <a href="subpage2.html" target="testFrame1">Load subpage2 in iframe1.</a></p>
+    <p>Step 2: <a href="subpage2.html" target="testFrame2">Load subpage2 in iframe2.</a></p>
+    <p>Step 3: <a href="page2.html">Goto page 2.</a></p>
     <div>
-      <iframe id="testFrame1" src="iframe1.html"></iframe>
-      <!-- <iframe id="testFrame2" src="iframe1.html"></iframe> -->
-      <iframe id="testFrame3" src="iframe1.html"></iframe>
+      <iframe name="testFrame1" src="subpage1.html"></iframe>
+      <iframe name="testFrame2" src="subpage1.html"></iframe>
     </div>
   </body>
 </html>
