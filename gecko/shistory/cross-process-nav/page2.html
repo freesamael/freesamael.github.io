@@ -12,6 +12,7 @@
     Step 4. Press <a href="iframe3.html" target="staticFrame">iframe3</a> to navigate the iframe in page 1.
     </p>
     <p id="openerLocation"></p>
+    <p>Reference: <a href="https://html.spec.whatwg.org/#allowed-to-navigate">https://html.spec.whatwg.org/#allowed-to-navigate</a></p>
     <script>
     window.onpageshow = $ => {
       document.getElementById('openerLocation').textContent = 'Our opener is ' + (opener ? opener.location : 'undefined');
