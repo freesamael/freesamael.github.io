@@ -6,13 +6,17 @@
   </head>
   <body onload="window.name='page2';">
     <h1>Page 2</h1>
-    <p>
-    Step 2. Press <a href="iframe2.html" target="staticFrame">iframe2</a> to navigate the iframe in page 1.<br>
-    Step 3. Navigate this page to a file:// location or about:config, and then go back.<br>
-    Step 4. Press <a href="iframe3.html" target="staticFrame">iframe3</a> to navigate the iframe in page 1.
-    </p>
+    <ul>
+    <li>Step 2. Press <a href="iframe2.html" target="staticFrame">iframe2</a> to navigate the iframe in page 1.</li>
+    <li>Step 3. Make a cross process navigation and then go back.</li>
+      <ul>
+      <li>Step 3.1. In Firefox, navigate this page to a file:// location or about:config</li>
+      <li>Step 3.2. In Chrome, navigate this page to <a href="http://www.google.com">www.google.com</a><br>
+          (somehow chrome seems to use an isolated process for www.gogle.com)</li>
+      </ul>
+    <li>Step 4. Press <a href="iframe3.html" target="staticFrame">iframe3</a> to navigate the iframe in page 1.</li>
+    </ul>
     <p id="openerLocation"></p>
-    <p>Reference: <a href="https://html.spec.whatwg.org/#allowed-to-navigate">https://html.spec.whatwg.org/#allowed-to-navigate</a></p>
     <script>
     window.onpageshow = $ => {
       document.getElementById('openerLocation').textContent = 'Our opener is ' + (opener ? opener.location : 'undefined');
