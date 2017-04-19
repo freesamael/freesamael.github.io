@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test window.close()</title>
+  </head>
+  <body>
+    <button onclick="window.open('self-close.html');">Script (should close)</button><br>
+    <button onclick="window.open('self-close.html', '_blank', 'noopener');">Script without opener (should close)</button><br>
+    <button onclick="window.open('redirect.html');">Script, tho redirect.html (should close)</button><br>
+    <button onclick="window.open('redirect.html', '_blank', 'noopener');">Script without opener, tho redirect.html (should close)</button><br>
+    <a href="self-close.html" target="_blank">Link with opener (should close)</a><br>
+    <a href="self-close.html" target="_blank" rel="noopener">Link without opener (should close)</a><br>
+    <a href="redirect.html" target="_blank">Link with opener, tho redirect.html (should not close)</a><br>
+    <a href="redirect.html" target="_blank" rel="noopener">Link without opener, tho redirect.html (should not close)</a><br>
+  </body>
+</html>
