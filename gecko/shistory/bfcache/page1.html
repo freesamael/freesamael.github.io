@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Page 1</title>
+    <script type="application/javascript">
+      window.addEventListener("pageshow", e => {
+        document.getElementById("content").innerHTML="cached=" + e.persisted;
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Page 1</h1>
+    <p id="content"></p>
+    <p><a href="page2.html">Link to Page 2</a></p>
+    <div id="frameContainer">
+      <iframe name="staticFrame" src="iframe1.html"></iframe>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>iframe 3</title>
+    <script type="application/javascript">
+      window.addEventListener("pageshow", e => {
+        document.getElementById("content").innerHTML="cached=" + e.persisted;
+      });
+    </script>
+  </head>
+  <body>
+    <h1>iframe 3</h1>
+    <p id="content"></p>
+  </body>
+</html>
