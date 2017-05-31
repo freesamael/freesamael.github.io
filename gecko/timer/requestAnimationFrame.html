@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test requestAnimationFrame</title>
+  </head>
+  <body>
+    <p><button onclick="clearCount();">Clear</button></p>
+    <p id="content" style="white-space:pre"></p>
+    <script type="application/javascript">
+    var last = 0;
+    var count = 0;
+    var slowFrames = "";
+    (function step() {
+      var now = performance.now();
+      if (last != 0) {
+        var diff = now - last;
+        if (diff > 100) {
+          slowFrames = "SlowFrame: " + diff + " ms\n" + slowFrames;
+        }
+        var content = document.getElementById("content");
+        content.textContent = "Count = " + count + "\n" + slowFrames;
+      }
+      last = now;
+      count++;
+      requestAnimationFrame(step);
+    })();
+
+    function clearCount() {
+      count = 0;
+      slowFrames = "";
+    }
+    </script>
+  </body>
+</html>
