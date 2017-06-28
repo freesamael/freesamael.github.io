@@ -6,8 +6,10 @@
   </head>
   <body>
     <p>
-      <button onclick="document.querySelector('#testFrame1').src='subpage2.html'">change testFrame1.src</button>
-      <button onclick="document.querySelector('#testFrame2').src='subpage2.html'">change testFrame2.src</button>
+      <button onclick="document.querySelector('#testFrame1').src='subpage2.html';">change testFrame1.src</button>
+      <button onclick="document.querySelector('#testFrame2').src='subpage2.html';">change testFrame2.src</button>
+      <button onclick="setTimeout($=>document.querySelector('#testFrame1').src='subpage2.html',1000);">change testFrame1.src tho setTimeout</button>
+      <button onclick="setTimeout($=>document.querySelector('#testFrame2').src='subpage2.html',1000);">change testFrame2.src tho setTimeout</button>
       <button onclick="location.reload();">location.reload()</button>
       <button onclick="history.go(0);">history.go(0)</button>
     </p>
