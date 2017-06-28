@@ -6,7 +6,8 @@
   </head>
   <body>
     <p>
-      <button onclick="window.parent.onbeforeunload = e => 'baby dont go';">add beforeunload listener</button>
+      <button onclick="window.parent.document.querySelector('#testFrame1').src='subpage2.html'">change testFrame1.src</button>
+      <button onclick="window.parent.document.querySelector('#testFrame2').src='subpage2.html'">change testFrame2.src</button>
       <button onclick="window.parent.location.reload();">location.reload()</button>
       <button onclick="window.parent.history.go(0);">history.go(0)</button>
     </p>
