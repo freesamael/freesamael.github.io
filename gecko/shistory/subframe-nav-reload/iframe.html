@@ -5,7 +5,11 @@
     <title>Test Frame Reload</title>
   </head>
   <body>
-    Click links in iframes and do a <button onclick="location.reload();">location.reload()</button> or <button onclick="history.go(0);">history.go(0)</button></p>
+    <p>
+      <button onclick="window.onbeforeunload = e => '\o/';">add beforeunload listener</button>
+      <button onclick="location.reload();">location.reload()</button>
+      <button onclick="history.go(0);">history.go(0)</button>
+    </p>
     <div>
       <iframe name="testFrame1" src="subpage1.html"></iframe>
       <iframe name="testFrame2" src="subpage1.html"></iframe>
