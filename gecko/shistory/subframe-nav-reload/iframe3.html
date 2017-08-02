@@ -14,11 +14,11 @@
       <iframe id="testFrame2" name="testFrame2" src="subpage1.html"></iframe>
     </div>
     <script type="application/javascript">
+      let frame1 = document.querySelector('#testFrame1');
+      let frame2 = document.querySelector('#testFrame2');
+      frame1.src = frame2.src = 'subpage1.html';
       setTimeout(function() {
-        document.querySelector('#testFrame1').src='subpage2.html'
-      }, 5000);
-      setTimeout(function() {
-        document.querySelector('#testFrame2').src='subpage2.html'
+        frame1.src = frame2.src = 'subpage2.html'
       }, 5000);
     </script>
   </body>
