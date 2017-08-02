@@ -10,10 +10,14 @@
       <button onclick="history.go(0);">history.go(0)</button>
     </p>
     <div>
-      <iframe id="testFrame1" name="testFrame1" src="subpage1.html"></iframe>
-      <iframe id="testFrame2" name="testFrame2" src="subpage1.html"></iframe>
+      <iframe id="testFrame1" name="testFrame1" src="subpage1.html" onload="updateHistLen();"></iframe>
+      <iframe id="testFrame2" name="testFrame2" src="subpage1.html" onload="updateHistLen();"></iframe>
     </div>
+    <p id="text"></p>
     <script type="application/javascript">
+      function updateHistLen() {
+        document.querySelector('#text').textContent = "history.length=" + history.length;
+      }
       let frame1 = document.querySelector('#testFrame1');
       let frame2 = document.querySelector('#testFrame2');
       frame1.src = frame2.src = 'subpage1.html';
