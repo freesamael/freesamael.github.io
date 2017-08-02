@@ -8,8 +8,8 @@
     <p>
       <button onclick="document.querySelector('#testFrame1').src='subpage2.html';">change testFrame1.src</button><br>
       <button onclick="document.querySelector('#testFrame2').src='subpage2.html';">change testFrame2.src</button><br>
-      <button onclick="setTimeout($=>document.querySelector('#testFrame1').src='subpage2.html',1000);">change testFrame1.src tho setTimeout</button><br>
-      <button onclick="setTimeout($=>document.querySelector('#testFrame2').src='subpage2.html',1000);">change testFrame2.src tho setTimeout</button><br>
+      <button onclick="setTimeout(function(){document.querySelector('#testFrame1').src='subpage2.html'},1000);">change testFrame1.src tho setTimeout</button><br>
+      <button onclick="setTimeout(function(){document.querySelector('#testFrame2').src='subpage2.html'},1000);">change testFrame2.src tho setTimeout</button><br>
       <a target="testFrame1" href="subpage2.html">load URI in testFrame1 tho link click</a><br>
       <a target="testFrame2" href="subpage2.html">load URI in testFrame2 tho link click</a>
     </p>
