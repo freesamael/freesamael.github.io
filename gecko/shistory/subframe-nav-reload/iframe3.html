@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test Frame Reload On Timeout</title>
+  </head>
+  <body>
+    <p>
+      <button onclick="location.reload();">location.reload()</button><br>
+      <button onclick="history.go(0);">history.go(0)</button>
+    </p>
+    <div>
+      <iframe id="testFrame1" name="testFrame1" src="subpage1.html"></iframe>
+      <iframe id="testFrame2" name="testFrame2" src="subpage1.html"></iframe>
+    </div>
+    <script type="application/javascript">
+      setTimeout(function() {
+        document.querySelector('#testFrame1').src='subpage2.html'
+      },1000);
+      setTimeout(function() {
+        document.querySelector('#testFrame2').src='subpage2.html'
+      },1000);
+    </script>
+  </body>
+</html>
