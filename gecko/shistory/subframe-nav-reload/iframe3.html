@@ -20,9 +20,11 @@
       }
       let frame1 = document.querySelector('#testFrame1');
       let frame2 = document.querySelector('#testFrame2');
-      frame1.src = frame2.src = 'subpage1.html';
+      frame2.src = frame1.src = 'subpage2.html';
+      document.title = "Step 2";
       setTimeout(function() {
-        frame1.src = frame2.src = 'subpage2.html'
+        frame2.src = frame1.src = 'subpage3.html'
+        document.title = "Step 3";
       }, 1000);
     </script>
   </body>
