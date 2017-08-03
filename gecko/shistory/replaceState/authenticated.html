@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test replaceState</title>
+    <script type="application/javascript">
+      let count = 0;
+      function replaceHistState() {
+        ++count;
+        history.replaceState({count}, "replace " + count, "");
+        document.title = "replace " + count;
+      }
+    </script>
+  </head>
+  <body>
+    <h1>You're logged in!</h1>
+    <p>
+      <button onclick="replaceHistState();">history.replaceState</button>
+    </p>
+  </body>
+</html>
