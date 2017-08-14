@@ -5,6 +5,8 @@
     <title>Test LoginManager</title>
     <script type="application/javascript">
     function doFakeSignIn() {
+      // (assume there're XHR operations here to post credentials...)
+      // ...
       document.querySelector("#fake-login-form").remove();
       document.querySelector("#text").textContent = "You're signed in";
     }
