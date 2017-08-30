@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test Frame Reload</title>
+    <script type="application/javascript">
+      function updateHistLen() {
+        document.querySelector('#text').textContent = 'history.length=' + history.length;
+      }
+    </script>
+  </head>
+  <body>
+    <p>
+      <button onclick="document.querySelector('#testFrame1').src='subpage2.html';">change testFrame1.src</button><br>
+      <button onclick="document.querySelector('#testFrame2').src='subpage2.html';">change testFrame2.src</button><br>
+      <button onclick="setTimeout(function(){document.querySelector('#testFrame1').src='subpage2.html'},1000);">change testFrame1.src tho setTimeout</button><br>
+      <button onclick="setTimeout(function(){document.querySelector('#testFrame2').src='subpage2.html'},1000);">change testFrame2.src tho setTimeout</button><br>
+      <a target="testFrame1" href="subpage2.html">load URI in testFrame1 tho link click</a><br>
+      <a target="testFrame2" href="subpage2.html">load URI in testFrame2 tho link click</a>
+    </p>
+    <p>
+      <button onclick="location.reload();">location.reload()</button><br>
+      <button onclick="history.go(0);">history.go(0)</button>
+      <button onclick="history.go(1);">history.go(1)</button>
+      <button onclick="history.go(-1);">history.go(-1)</button>
+    </p>
+    <div>
+      <iframe id="testFrame1" name="testFrame1" src="subpage1.html" onload="updateHistLen();"></iframe>
+      <iframe id="testFrame2" name="testFrame2" src="subpage1.html" onload="updateHistLen();"></iframe>
+    </div>
+    <p id="text"></p>
+  </body>
+</html>

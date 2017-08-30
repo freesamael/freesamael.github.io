@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test LoginManager</title>
+    <script type="application/javascript">
+    function doFakeSignIn() {
+      // (assume there're XHR operations here to post credentials...)
+      // ...
+      document.querySelector("#fake-login-form").remove();
+      document.querySelector("#text").textContent = "You're signed in";
+    }
+    </script>
+  </head>
+  <body>
+    <div id="fake-login-form">
+      <input type="text" placeholder="Enter Username"><br>
+      <input type="password" placeholder="Enter Password"><br>
+      <button onclick="doFakeSignIn();">SignIn</button>
+    </div>
+    <p id="text"></p>
+    <button onclick="history.replaceState({}, 'replaceState causes password prompt', location.href);">replaceState</button>
+  </body>
+</html>
