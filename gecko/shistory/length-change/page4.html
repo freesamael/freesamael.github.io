@@ -10,8 +10,10 @@
     <p><a href="page5.html">Link to Page 5</a></p>
     <script type="application/javascript">
       function showHistoryLength() {
-        document.querySelector("#content").textContent = "history.length=" + history.length;
-      }
+        setTimeout($ => setTimeout($ =>
+        document.querySelector("#content").textContent = "history.length=" + history.length
+      , 0), 0);
+    }
     </script>
   </body>
 </html>
