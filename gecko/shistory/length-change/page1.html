@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Page 1</title>
+  </head>
+  <body onload="addDynamicFrameEntries();">
+    <h1>Page 1</h1>
+    <p id="content"></p>
+    <p><a href="page2.html">Link to Page 2</a></p>
+    <div id="frameContainer">
+    </div>
+    <script type="application/javascript">
+      function waitForLoad(frame) {
+        return new Promise(r => frame.onload = r);
+      }
+      async function addDynamicFrameEntries() {
+        let dynamicFrame = document.createElement("iframe");
+        dynamicFrame.src = "iframe1.html";
+        document.querySelector("#frameContainer").appendChild(dynamicFrame);
+        await waitForLoad(dynamicFrame);
+        dynamicFrame.src = "iframe2.html";
+        await waitForLoad(dynamicFrame);
+        dynamicFrame.src = "iframe3.html";
+        await waitForLoad(dynamicFrame);
+        dynamicFrame.src = "iframe4.html";
+        await waitForLoad(dynamicFrame);
+        dynamicFrame.src = "iframe5.html";
+        await waitForLoad(dynamicFrame);
+        dynamicFrame.src = "iframe6.html";
+      }
+    </script>
+  </body>
+</html>
