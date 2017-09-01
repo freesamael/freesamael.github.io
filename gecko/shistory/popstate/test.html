@@ -1,0 +1,9 @@
+<script type="application/javascript">
+  window.onpopstate = function () { parent.log("popState fired in frame"); };
+  history.pushState({page: 1}, "Hi", "?page=1");
+  history.pushState({page: 2}, "Hi", "?page=2");
+  parent.log("About to test fire");
+  history.back();
+  parent.log("Test fired, about to begin check");
+  window.parent.postMessage("TTG", "*");
+</script>

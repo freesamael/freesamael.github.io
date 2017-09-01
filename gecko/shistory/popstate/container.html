@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Test popState</title>
+    <script type="application/javascript">
+      function log(text) {
+        document.querySelector("#content").textContent += text + "\r\n";
+      }
+      window.onmessage = function() {
+        log("About to go back in parent");
+        history.back();
+        log("Went back in parent");
+      };
+    </script>
+  </head>
+  <body>
+    <p id="content" style="white-space: pre-line;"></p>
+    <iframe src="test.html"></iframe>
+  </body>
+</html>
+
