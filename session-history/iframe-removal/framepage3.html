@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Random Framepage</title>
+    <script>
+      function notifyHistoryUpdate() {
+        window.parent.postMessage("update-history", "*");
+      }
+    </script>
+  </head>
+  <body onload="notifyHistoryUpdate();">
+     <h1>framepage 3</h1>
+     <a href="framepage1.html">framepage1</a>
+  </body>
+</html>

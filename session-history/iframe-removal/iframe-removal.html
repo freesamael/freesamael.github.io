@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Navigation after iframe removal</title>
+    <style>
+      pre {
+        white-space: pre-line;
+      }
+    </style>
+    <script>
+      let modified = false;
+      window.addEventListener("message", msg => {
+        if (msg.data == "update-history") {
+          update();
+        }
+      });
+      function update() {
+        document.querySelector("#histlen").textContent = history.length;
+        document.querySelector("#modified").textContent = modified;
+      }
+      function removeFrame() {
+        document.querySelector("#testFrame").remove();
+        modified = true;
+        update();
+      }
+    </script>
+  </head>
+  <body onpageshow="update();">
+    <pre>
+      1. Make some navigations in the following iframe.
+      2. Click <button onclick="removeFrame();">removeFrame</button> to remove the iframe.
+      3. Observe history.length differs in different browsers.
+      4. Observe different behaviors of browsers on navigating back and forward.
+    </pre>
+    <pre>
+      history.length=<span id="histlen"></span>
+      document.modidified=<span id="modified"></span>
+    </pre>
+    <iframe id="testFrame" src="framepage1.html"></iframe>
+  </body>
+</html>
