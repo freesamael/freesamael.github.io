@@ -7,14 +7,14 @@
   <body onload="window.name='page2';">
     <h1>Page 2</h1>
     <ul>
-    <li>Step 2. Press <a href="iframe2.html" target="staticFrame">iframe2</a> to navigate the iframe in page 1.</li>
+    <li>Step 2. Press <a href="../common/iframe2.html" target="staticFrame">iframe2</a> to navigate the iframe in page 1.</li>
     <li>Step 3. Make a cross process navigation and then go back.</li>
       <ul>
       <li>Step 3.1. In Firefox, navigate this page to a file:// location or about:config</li>
       <li>Step 3.2. In Chrome, navigate this page to <a href="http://www.google.com">www.google.com</a>, or chrome://settings<br>
           (somehow chrome seems to use an isolated process for www.google.com)</li>
       </ul>
-    <li>Step 4. Press <a href="iframe3.html" target="staticFrame">iframe3</a> to navigate the iframe in page 1.</li>
+    <li>Step 4. Press <a href="../common/iframe3.html" target="staticFrame">iframe3</a> to navigate the iframe in page 1.</li>
     <li>Result:<br>
         In Firefox this will open a new tab, and it shows opener is undefined below.<br>
         In Chrome the link will be loaded in the iframe of page 1 and opener location correctly shows.</li>

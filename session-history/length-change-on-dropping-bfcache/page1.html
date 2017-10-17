@@ -16,16 +16,16 @@
       }
       async function addDynamicFrameEntries() {
         let dynamicFrame = document.createElement("iframe");
-        dynamicFrame.src = "iframe1.html";
+        dynamicFrame.src = "../common/iframe1.html";
         document.querySelector("#frameContainer").appendChild(dynamicFrame);
         await waitForLoad(dynamicFrame);
-        dynamicFrame.src = "iframe2.html";
+        dynamicFrame.src = "../common/iframe2.html";
         await waitForLoad(dynamicFrame);
-        dynamicFrame.src = "iframe3.html";
+        dynamicFrame.src = "../common/iframe3.html";
         await waitForLoad(dynamicFrame);
-        dynamicFrame.src = "iframe4.html";
+        dynamicFrame.src = "../common/iframe4.html";
         await waitForLoad(dynamicFrame);
-        dynamicFrame.src = "iframe5.html";
+        dynamicFrame.src = "../common/iframe5.html";
       }
     </script>
   </body>
