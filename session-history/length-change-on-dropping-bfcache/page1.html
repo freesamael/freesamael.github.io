@@ -19,13 +19,19 @@
         dynamicFrame.src = "../common/iframe1.html";
         document.querySelector("#frameContainer").appendChild(dynamicFrame);
         await waitForLoad(dynamicFrame);
+        document.querySelector("#content").textContent = "history.length=" + history.length;
         dynamicFrame.src = "../common/iframe2.html";
         await waitForLoad(dynamicFrame);
+        document.querySelector("#content").textContent = "history.length=" + history.length;
         dynamicFrame.src = "../common/iframe3.html";
         await waitForLoad(dynamicFrame);
+        document.querySelector("#content").textContent = "history.length=" + history.length;
         dynamicFrame.src = "../common/iframe4.html";
         await waitForLoad(dynamicFrame);
+        document.querySelector("#content").textContent = "history.length=" + history.length;
         dynamicFrame.src = "../common/iframe5.html";
+        await waitForLoad(dynamicFrame);
+        document.querySelector("#content").textContent = "history.length=" + history.length;
       }
     </script>
   </body>
