@@ -10,7 +10,8 @@
     </style>
     <script type="application/javascript">
       function waitForLoad(frame) {
-        return new Promise(r => frame.onload = r);
+        return new Promise(r => frame.onload = r)
+          .then($ => new Promise(r => setTimeout(r, 0)));
       }
       let dynamicFrame;
       async function createDynamicFrame() {
