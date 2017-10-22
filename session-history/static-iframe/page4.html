@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Page 4</title>
+    <style>
+      pre {
+        white-space: pre-line;
+      }
+    </style>
+    <script type="application/javascript">
+      function showHistoryLength() {
+        document.querySelector("#histlen").textContent = history.length;
+      }
+    </script>
+  </head>
+  <body onpageshow="setTimeout(showHistoryLength(), 0);">
+    <h1>Page 4</h1>
+    <pre>
+      history.length=<span id="histlen"></span>
+      <a href="page5.html">Link to Page 5</a>
+    </pre>
+  </body>
+</html>

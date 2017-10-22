@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Page 1</title>
+    <style>
+      pre {
+        white-space: pre-line;
+      }
+    </style>
+    <script type="application/javascript">
+      function waitForLoad(frame) {
+        return new Promise(r => frame.onload = r);
+      }
+      async function addStaticFrameEntries() {
+        let staticFrame = document.querySelector("#testFrame");
+        staticFrame.src = "../common/iframe2.html";
+        await waitForLoad(staticFrame);
+        showHistoryLength();
+
+        staticFrame.src = "../common/iframe3.html";
+        await waitForLoad(staticFrame);
+        showHistoryLength();
+
+        staticFrame.src = "../common/iframe4.html";
+        await waitForLoad(staticFrame);
+        showHistoryLength();
+
+        staticFrame.src = "../common/iframe5.html";
+        await waitForLoad(staticFrame);
+        showHistoryLength();
+      }
+      function showHistoryLength() {
+        document.querySelector("#histlen").textContent = history.length;
+      }
+    </script>
+  </head>
+  <body onpageshow="setTimeout(showHistoryLength(), 0);">
+    <h1>Page 1</h1>
+    <pre>
+      1. Press <button onclick="addStaticFrameEntries();">addStaticFrameEntries</button> to navigate the static iframe a few times.
+      2. Follow the link below and links in follow-up pages to navigate top-level documents.
+      3. Observe history.length differs in different browsers.
+    </pre>
+    <pre>
+      history.length=<span id="histlen"></span>
+      <a href="page2.html">Link to Page 2</a>
+    </pre>
+    <div>
+      <iframe id="testFrame" src="../common/iframe1.html"></iframe>
+    </div>
+  </body>
+</html>

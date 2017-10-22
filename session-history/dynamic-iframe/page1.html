@@ -3,13 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>Page 1</title>
-  </head>
-  <body onload="addDynamicFrameEntries();">
-    <h1>Page 1</h1>
-    <p id="content"></p>
-    <p><a href="page2.html">Link to Page 2</a></p>
-    <div id="frameContainer">
-    </div>
+    <style>
+      pre {
+        white-space: pre-line;
+      }
+    </style>
     <script type="application/javascript">
       function waitForLoad(frame) {
         return new Promise(r => frame.onload = r);
@@ -19,20 +17,41 @@
         dynamicFrame.src = "../common/iframe1.html";
         document.querySelector("#frameContainer").appendChild(dynamicFrame);
         await waitForLoad(dynamicFrame);
-        document.querySelector("#content").textContent = "history.length=" + history.length;
+        showHistoryLength();
+
         dynamicFrame.src = "../common/iframe2.html";
         await waitForLoad(dynamicFrame);
-        document.querySelector("#content").textContent = "history.length=" + history.length;
+        showHistoryLength();
+
         dynamicFrame.src = "../common/iframe3.html";
         await waitForLoad(dynamicFrame);
-        document.querySelector("#content").textContent = "history.length=" + history.length;
+        showHistoryLength();
+
         dynamicFrame.src = "../common/iframe4.html";
         await waitForLoad(dynamicFrame);
-        document.querySelector("#content").textContent = "history.length=" + history.length;
+        showHistoryLength();
+
         dynamicFrame.src = "../common/iframe5.html";
         await waitForLoad(dynamicFrame);
-        document.querySelector("#content").textContent = "history.length=" + history.length;
+        showHistoryLength();
+      }
+      function showHistoryLength() {
+        document.querySelector("#histlen").textContent = history.length;
       }
     </script>
+  </head>
+  <body onpageshow="setTimeout(showHistoryLength(), 0);">
+    <h1>Page 1</h1>
+    <pre>
+      1. Press <button onclick="addDynamicFrameEntries();">addDynamicFrameEntries</button> to create a dynamic iframe and navigate the iframe a few times.
+      2. Follow the link below and links in follow-up pages to navigate top-level documents.
+      3. Observe history.length differs in different browsers.
+    </pre>
+    <pre>
+      history.length=<span id="histlen"></span>
+      <a href="page2.html">Link to Page 2</a>
+    </pre>
+    <div id="frameContainer">
+    </div>
   </body>
 </html>
