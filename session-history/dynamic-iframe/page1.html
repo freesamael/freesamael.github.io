@@ -12,28 +12,34 @@
       function waitForLoad(frame) {
         return new Promise(r => frame.onload = r);
       }
+      let dynamicFrame;
+      async function createDynamicFrame() {
+        if (!dynamicFrame) {
+          dynamicFrame = document.createElement("iframe");
+          dynamicFrame.src = "../common/iframe1.html";
+          document.querySelector("#frameContainer").appendChild(dynamicFrame);
+          await waitForLoad(dynamicFrame);
+          showHistoryLength();
+        }
+      }
       async function addDynamicFrameEntries() {
-        let dynamicFrame = document.createElement("iframe");
-        dynamicFrame.src = "../common/iframe1.html";
-        document.querySelector("#frameContainer").appendChild(dynamicFrame);
-        await waitForLoad(dynamicFrame);
-        showHistoryLength();
+        if (dynamicFrame) {
+          dynamicFrame.src = "../common/iframe2.html";
+          await waitForLoad(dynamicFrame);
+          showHistoryLength();
 
-        dynamicFrame.src = "../common/iframe2.html";
-        await waitForLoad(dynamicFrame);
-        showHistoryLength();
+          dynamicFrame.src = "../common/iframe3.html";
+          await waitForLoad(dynamicFrame);
+          showHistoryLength();
 
-        dynamicFrame.src = "../common/iframe3.html";
-        await waitForLoad(dynamicFrame);
-        showHistoryLength();
+          dynamicFrame.src = "../common/iframe4.html";
+          await waitForLoad(dynamicFrame);
+          showHistoryLength();
 
-        dynamicFrame.src = "../common/iframe4.html";
-        await waitForLoad(dynamicFrame);
-        showHistoryLength();
-
-        dynamicFrame.src = "../common/iframe5.html";
-        await waitForLoad(dynamicFrame);
-        showHistoryLength();
+          dynamicFrame.src = "../common/iframe5.html";
+          await waitForLoad(dynamicFrame);
+          showHistoryLength();
+        }
       }
       function showHistoryLength() {
         document.querySelector("#histlen").textContent = history.length;
@@ -43,9 +49,10 @@
   <body onpageshow="setTimeout(showHistoryLength(), 0);">
     <h1>Page 1</h1>
     <pre>
-      1. Press <button onclick="addDynamicFrameEntries();">addDynamicFrameEntries</button> to create a dynamic iframe and navigate the iframe a few times.
-      2. Follow the link below and links in follow-up pages to navigate top-level documents.
-      3. Observe history.length differs in different browsers.
+      1. Press <button onclick="createDynamicFrame();">createDynamicFrame</button> to create a dynamic iframe.
+      2. Press <button onclick="addDynamicFrameEntries();">addDynamicFrameEntries</button> to navigate the dynamic iframe a few times.
+      3. Follow the link below and links in follow-up pages to navigate top-level documents.
+      4. Observe history.length differs in different browsers.
     </pre>
     <pre>
       history.length=<span id="histlen"></span>
