@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>iframe random delete example</title>
+    <style>
+      pre {
+        white-space: pre-line;
+      }
+    </style>
+    <script>
+      function deleteFrame() {
+        let i = Math.floor(Math.random() * 10);
+        document.querySelector("#frameContainer" + i).remove();
+      }
+      function loadFrameEntries() {
+        for (let i = 0; i < window.length; i++) {
+          if (window[i].next) {
+            window[i].next();
+          }
+        }
+      }
+    </script>
+  </head>
+  <body onload="deleteFrame();" onunload="">
+    The page randomly delete one of the iframes on each load.
+    <pre>
+      1. Click <button onclick="loadFrameEntries();">loadFrameEntries</button> twice to navigate the iframes.
+      2.1. Click <a href="goback.html">navigate top-level doc and goback</a> to make history navigation, or
+      2.2. Click <button onclick="location.reload();">location.reload();</button> or <button onclick="history.go(0);">history.go(0);</button> to reload.
+      3. Verify if the iframes match what they should load.
+    </pre>
+    <div id="frameContainer0">This should be <b>iframe 0</b><br><iframe src="iframe0-1.html"></iframe></div>
+    <div id="frameContainer1">This should be <b>iframe 1</b><br><iframe src="iframe1-1.html"></iframe></div>
+    <div id="frameContainer2">This should be <b>iframe 2</b><br><iframe src="iframe2-1.html"></iframe></div>
+    <div id="frameContainer3">This should be <b>iframe 3</b><br><iframe src="iframe3-1.html"></iframe></div>
+    <div id="frameContainer4">This should be <b>iframe 4</b><br><iframe src="iframe4-1.html"></iframe></div>
+    <div id="frameContainer5">This should be <b>iframe 5</b><br><iframe src="iframe5-1.html"></iframe></div>
+    <div id="frameContainer6">This should be <b>iframe 6</b><br><iframe src="iframe6-1.html"></iframe></div>
+    <div id="frameContainer7">This should be <b>iframe 7</b><br><iframe src="iframe7-1.html"></iframe></div>
+    <div id="frameContainer8">This should be <b>iframe 8</b><br><iframe src="iframe8-1.html"></iframe></div>
+    <div id="frameContainer9">This should be <b>iframe 9</b><br><iframe src="iframe9-1.html"></iframe></div>
+  </body>
+</html>

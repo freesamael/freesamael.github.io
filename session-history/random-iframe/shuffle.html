@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>iframe shuffle example</title>
+    <style>
+      pre {
+        white-space: pre-line;
+      }
+    </style>
+    <script>
+      // knuth-shuffle
+      function shuffle(array) {
+        let currentIndex = array.length, temporaryValue, randomIndex;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+          // Pick a remaining element...
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+
+          // And swap it with the current element.
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+      }
+      function createFrames() {
+        let array = shuffle([1, 2, 3, 4]);
+        for (let i of array) {
+          let div = document.createElement("div");
+          div.innerHTML = "This should be <b>iframe " + i + "</b>: <br>";
+          let frame = document.createElement("iframe");
+          frame.src = "iframe" + i + "-1.html";
+          div.appendChild(frame);
+          document.body.appendChild(div);
+        }
+      }
+      function loadFrameEntries() {
+        for (let i = 0; i < window.length; i++) {
+          if (window[i].next) {
+            window[i].next();
+          }
+        }
+      }
+    </script>
+  </head>
+  <body onload="createFrames();" onunload="">
+    The page randomly shuffles the sequence of iframes each load.
+    <pre>
+      1. Click <button onclick="loadFrameEntries();">loadFrameEntries</button> twice to navigate the iframes.
+      2.1. Click <a href="goback.html">navigate top-level doc and goback</a> to make history navigation, or
+      2.2. Click <button onclick="location.reload();">location.reload();</button> or <button onclick="history.go(0);">history.go(0);</button> to reload.
+      3. Verify if the iframes match what they should load.
+    </pre>
+  </body>
+</html>
